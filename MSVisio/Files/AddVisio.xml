@@ -1,0 +1,10 @@
+<Configuration ID="b5f8e99c-4dd4-4630-a46f-e11f8fc2a13d">
+  <Add Version="MatchInstalled">
+    <Product ID="VisioProRetail">
+      <Language ID="MatchInstalled" TargetProduct="O365ProPlusRetail" />
+      <ExcludeApp ID="Groove" />
+    </Product>
+  </Add>
+ <Display Level="None" AcceptEULA="TRUE" />
+ <Logging Level="Standard" Path="C:\Windows\Temp" />
+</Configuration>
