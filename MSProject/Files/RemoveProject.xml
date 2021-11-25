@@ -1,0 +1,11 @@
+<Configuration>
+  <Info Description="Microsoft Project Professional Uninstall" />
+  <Remove All="FALSE">
+    <Product ID="ProjectProRetail" >
+      <Language ID="en-us" />
+    </Product>
+  </Remove>
+  <Display Level="None" AcceptEULA="TRUE" />
+  <Logging Level="Standard" path="C:\Windows\Temp\" />
+  <Property Name="FORCEAPPSHUTDOWN" Value="TRUE"/>
+</Configuration>
