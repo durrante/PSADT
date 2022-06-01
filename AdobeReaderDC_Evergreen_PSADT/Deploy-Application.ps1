@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
 	This script performs the installation or uninstallation of an application(s).
 	# LICENSE #
@@ -148,6 +148,27 @@ Try {
 		## <Perform Post-Installation tasks here>
 		Remove-Folder -Path "$env:SYSTEMDRIVE\temp" -ErrorAction SilentlyContinue 
 		Remove-File -Path "$envCommonDesktop\Adobe Acrobat DC.lnk" -ErrorAction SilentlyContinue
+
+		## Configure settings for Adobe Acrobat Reader DC
+		If ($Is64Bit) {
+			$SoftwareRegKey = "HKLM:\SOFTWARE\WOW6432Node"
+		}
+		Else {
+			$SoftwareRegKey = "HKLM:\SOFTWARE"
+		}
+		#Disable EULA
+		Set-RegistryKey -Key "$($SoftwareRegKey)\Adobe\Acrobat Reader\DC\AdobeViewer" -Name "EULA" -Value "1" -Type "DWord"
+		#Dsable the prompt "Make Adobe Acrobat my default PDF application."
+		Set-RegistryKey -Key "$($SoftwareRegKey)\Adobe\Acrobat Reader\DC\AVAlert\cCheckbox" -Name "iAppDoNotTakePDFOwnershipAtLaunch" -Value "1" -Type "DWord"
+		Set-RegistryKey -Key "$($SoftwareRegKey)\Adobe\Acrobat Reader\DC\AVAlert\cCheckbox" -Name "iAppDoNotTakePDFOwnershipAtLaunchWin10" -Value "1" -Type "DWord"
+		#Disable the Help > Repair Installation menu
+		Set-RegistryKey -Key "$($SoftwareRegKey)\Adobe\Acrobat Reader\DC\Installer" -Name "DisableMaintenance" -Value "1" -Type "DWord"
+		#Disable messages which encourage the user to upgrade the product
+		Set-RegistryKey -Key "$($SoftwareRegKey)\Policies\Adobe\Acrobat Reader\DC\FeatureLockDown" -Name "bAcroSuppressUpsell" -Value "1" -Type "DWord"
+		#Disable the First Time Experience (FTE) feature (Welcome tour/page)
+		Set-RegistryKey -Key "$($SoftwareRegKey)\Policies\Adobe\Acrobat Reader\DC\FeatureLockDown" -Name "bToggleFTE" -Value "1" -Type "DWord"
+		#Disable user participation in the feedback program
+		Set-RegistryKey -Key "$($SoftwareRegKey)\Policies\Adobe\Acrobat Reader\DC\FeatureLockDown" -Name "bUsageMeasurement" -Value "0" -Type "DWord"
 
 		## Display a message at the end of the install
 		##If (-not $useDefaultMsi) { Show-InstallationPrompt -Message 'You can customize text to appear at the end of an install or remove it completely for unattended installations.' -ButtonRightText 'OK' -Icon Information -NoWait }
