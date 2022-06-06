@@ -1,0 +1,14 @@
+Install:
+
+.\ServiceUI.exe -Process:explorer.exe Deploy-Application.exe -DeploymentType install
+
+Uninstall:
+
+.\ServiceUI.exe -Process:explorer.exe Deploy-Application.exe -DeploymentType uninstall
+
+Detection method:
+
+	Registry
+	Key path: 			HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\OneDrive
+	Value name: 		Version
+	Detection method:	Value exists
