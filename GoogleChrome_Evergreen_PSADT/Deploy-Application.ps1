@@ -146,6 +146,7 @@ Try {
 		[string]$installPhase = 'Post-Installation'
 
 		## <Perform Post-Installation tasks here>
+		Sleep -Seconds 5
 		Remove-Folder -Path "$env:SYSTEMDRIVE\temp" -ErrorAction SilentlyContinue 
 		Remove-File -Path "$envCommonDesktop\Google Chrome.lnk" -ErrorAction SilentlyContinue
 
