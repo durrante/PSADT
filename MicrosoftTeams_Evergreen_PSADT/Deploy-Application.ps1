@@ -123,45 +123,45 @@ Try {
 		## Show-InstallationProgress
 
 		## <Perform Pre-Installation tasks here>
-        ## Remove Microsoft Teams (User Profile)
-        $Users = Get-ChildItem C:\Users
-        ForEach ($user in $Users) {
-        $TeamsLocal = "$($user.fullname)\AppData\Local\Microsoft\Teams"
-        If (Test-Path $TeamsLocal) {
-        $UninstPath = Get-ChildItem -Path "$TeamsLocal\*" -Include Update.exe -Recurse -ErrorAction SilentlyContinue
-        If ($UninstPath.Exists) {
-        Write-Log -Message "Found $($UninstPath.FullName), now attempting to uninstall the $installTitle."
-        Execute-ProcessAsUser -Path "$UninstPath" -Parameters "--uninstall -s" -Wait
-        Start-Sleep -Seconds 5
+		## Remove Microsoft Teams (User Profile)
+		$Users = Get-ChildItem C:\Users
+		ForEach ($user in $Users) {
+		$TeamsLocal = "$($user.fullname)\AppData\Local\Microsoft\Teams"
+		If (Test-Path $TeamsLocal) {
+		$UninstPath = Get-ChildItem -Path "$TeamsLocal\*" -Include Update.exe -Recurse -ErrorAction SilentlyContinue
+		If ($UninstPath.Exists) {
+		Write-Log -Message "Found $($UninstPath.FullName), now attempting to uninstall the $installTitle."
+		Execute-ProcessAsUser -Path "$UninstPath" -Parameters "--uninstall -s" -Wait
+		Start-Sleep -Seconds 5
 
-        ## Cleanup Microsoft Teams Application (Local User Profile) Directory
-        If (Test-Path $TeamsLocal) {
-        Write-Log -Message "Cleanup ($TeamsLocal) Directory."
-        Remove-Item -Path "$TeamsLocal" -Force -Recurse -ErrorAction SilentlyContinue
-        }
+		## Cleanup Microsoft Teams Application (Local User Profile) Directory
+		If (Test-Path $TeamsLocal) {
+		Write-Log -Message "Cleanup ($TeamsLocal) Directory."
+		Remove-Item -Path "$TeamsLocal" -Force -Recurse -ErrorAction SilentlyContinue
+		}
 
-        ## Remove Microsoft Teams Start Menu Shortcut From All Profiles
-        $StartMenuSC = "$($user.fullname)\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Microsoft*Teams*"
-        If (Test-Path $StartMenuSC) {
-        Remove-Item $StartMenuSC -Recurse -Force -ErrorAction SilentlyContinue
-        }
+		## Remove Microsoft Teams Start Menu Shortcut From All Profiles
+		$StartMenuSC = "$($user.fullname)\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Microsoft*Teams*"
+		If (Test-Path $StartMenuSC) {
+		Remove-Item $StartMenuSC -Recurse -Force -ErrorAction SilentlyContinue
+		}
 
-        ## Remove Microsoft Teams Shortcuts From All Profiles
-        $DesktopSC = "$($user.fullname)\Desktop\Microsoft*Teams*.lnk"
-        If (Test-Path $DesktopSC) {
-        Remove-Item $DesktopSC -Recurse -Force -ErrorAction SilentlyContinue
-        }
-        }
-        }
-        }
+		## Remove Microsoft Teams Shortcuts From All Profiles
+		$DesktopSC = "$($user.fullname)\Desktop\Microsoft*Teams*.lnk"
+		If (Test-Path $DesktopSC) {
+		Remove-Item $DesktopSC -Recurse -Force -ErrorAction SilentlyContinue
+		}
+		}
+		}
+		}
 
-        ## Cleanup User Profile Registry
-        [scriptblock]$HKCURegistrySettings = {
-        Remove-RegistryKey -Key 'HKCU\Software\Microsoft\Windows\CurrentVersion\Uninstall\Teams' -SID $UserProfile.SID
-        }
-        Invoke-HKCURegistrySettingsForAllUsers -RegistrySettings $HKCURegistrySettings -ErrorAction SilentlyContinue
-        ## Uninstall Any Existing Versions of Teams Machine-Wide Installer (MSI)
-        Remove-MSIApplications -Name 'Teams Machine-Wide Installer'
+		## Cleanup User Profile Registry
+		[scriptblock]$HKCURegistrySettings = {
+		Remove-RegistryKey -Key 'HKCU\Software\Microsoft\Windows\CurrentVersion\Uninstall\Teams' -SID $UserProfile.SID
+		}
+		Invoke-HKCURegistrySettingsForAllUsers -RegistrySettings $HKCURegistrySettings -ErrorAction SilentlyContinue
+		## Uninstall Any Existing Versions of Teams Machine-Wide Installer (MSI)
+		Remove-MSIApplications -Name 'Teams Machine-Wide Installer'
   
 		##*===============================================
 		##* INSTALLATION
@@ -217,45 +217,45 @@ Try {
 		}
 
 		# <Perform Uninstallation tasks here>
-        ## Remove Microsoft Teams (User Profile)
-        $Users = Get-ChildItem C:\Users
-        ForEach ($user in $Users) {
-        $TeamsLocal = "$($user.fullname)\AppData\Local\Microsoft\Teams"
-        If (Test-Path $TeamsLocal) {
-        $UninstPath = Get-ChildItem -Path "$TeamsLocal\*" -Include Update.exe -Recurse -ErrorAction SilentlyContinue
-        If ($UninstPath.Exists) {
-        Write-Log -Message "Found $($UninstPath.FullName), now attempting to uninstall the $installTitle."
-        Execute-ProcessAsUser -Path "$UninstPath" -Parameters "--uninstall -s" -Wait
-        Start-Sleep -Seconds 5
+		## Remove Microsoft Teams (User Profile)
+		$Users = Get-ChildItem C:\Users
+		ForEach ($user in $Users) {
+		$TeamsLocal = "$($user.fullname)\AppData\Local\Microsoft\Teams"
+		If (Test-Path $TeamsLocal) {
+		$UninstPath = Get-ChildItem -Path "$TeamsLocal\*" -Include Update.exe -Recurse -ErrorAction SilentlyContinue
+		If ($UninstPath.Exists) {
+		Write-Log -Message "Found $($UninstPath.FullName), now attempting to uninstall the $installTitle."
+		Execute-ProcessAsUser -Path "$UninstPath" -Parameters "--uninstall -s" -Wait
+		Start-Sleep -Seconds 5
 
-        ## Cleanup Microsoft Teams Application (Local User Profile) Directory
-        If (Test-Path $TeamsLocal) {
-        Write-Log -Message "Cleanup ($TeamsLocal) Directory."
-        Remove-Item -Path "$TeamsLocal" -Force -Recurse -ErrorAction SilentlyContinue
-        }
+		## Cleanup Microsoft Teams Application (Local User Profile) Directory
+		If (Test-Path $TeamsLocal) {
+		Write-Log -Message "Cleanup ($TeamsLocal) Directory."
+		Remove-Item -Path "$TeamsLocal" -Force -Recurse -ErrorAction SilentlyContinue
+		}
 
-        ## Remove Microsoft Teams Start Menu Shortcut From All Profiles
-        $StartMenuSC = "$($user.fullname)\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Microsoft*Teams*"
-        If (Test-Path $StartMenuSC) {
-        Remove-Item $StartMenuSC -Recurse -Force -ErrorAction SilentlyContinue
-        }
+		## Remove Microsoft Teams Start Menu Shortcut From All Profiles
+		$StartMenuSC = "$($user.fullname)\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Microsoft*Teams*"
+		If (Test-Path $StartMenuSC) {
+		Remove-Item $StartMenuSC -Recurse -Force -ErrorAction SilentlyContinue
+		}
 
-        ## Remove Microsoft Teams Shortcuts From All Profiles
-        $DesktopSC = "$($user.fullname)\Desktop\Microsoft*Teams*.lnk"
-        If (Test-Path $DesktopSC) {
-        Remove-Item $DesktopSC -Recurse -Force -ErrorAction SilentlyContinue
-        }
-        }
-        }
-        }
+		## Remove Microsoft Teams Shortcuts From All Profiles
+		$DesktopSC = "$($user.fullname)\Desktop\Microsoft*Teams*.lnk"
+		If (Test-Path $DesktopSC) {
+		Remove-Item $DesktopSC -Recurse -Force -ErrorAction SilentlyContinue
+		}
+		}
+		}
+		}
 
-        ## Cleanup User Profile Registry
-        [scriptblock]$HKCURegistrySettings = {
-        Remove-RegistryKey -Key 'HKCU\Software\Microsoft\Windows\CurrentVersion\Uninstall\Teams' -SID $UserProfile.SID
-        }
-        Invoke-HKCURegistrySettingsForAllUsers -RegistrySettings $HKCURegistrySettings -ErrorAction SilentlyContinue
-        ## Uninstall Any Existing Versions of Teams Machine-Wide Installer (MSI)
-        Remove-MSIApplications -Name 'Teams Machine-Wide Installer'
+		## Cleanup User Profile Registry
+		[scriptblock]$HKCURegistrySettings = {
+		Remove-RegistryKey -Key 'HKCU\Software\Microsoft\Windows\CurrentVersion\Uninstall\Teams' -SID $UserProfile.SID
+		}
+		Invoke-HKCURegistrySettingsForAllUsers -RegistrySettings $HKCURegistrySettings -ErrorAction SilentlyContinue
+		## Uninstall Any Existing Versions of Teams Machine-Wide Installer (MSI)
+		Remove-MSIApplications -Name 'Teams Machine-Wide Installer'
 
 		##*===============================================
 		##* POST-UNINSTALLATION
