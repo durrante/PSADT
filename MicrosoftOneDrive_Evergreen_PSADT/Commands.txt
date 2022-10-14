@@ -9,6 +9,6 @@ Uninstall:
 Detection method:
 
 	Registry
-	Key path: 			HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\OneDrive
+	Key path: 		HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\OneDrive
 	Value name: 		Version
 	Detection method:	Value exists
