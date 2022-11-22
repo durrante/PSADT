@@ -9,7 +9,7 @@ If (Get-PSRepository | Where-Object { $_.Name -eq "PSGallery" -and $_.Installati
 #Install or update Evergreen module
 $Installed = Get-Module -Name "Evergreen" -ListAvailable | `
     Sort-Object -Property @{ Expression = { [System.Version]$_.Version }; Descending = $true } | `
-    Select-Object -First 1a
+    Select-Object -First 1
 $Published = Find-Module -Name "Evergreen"
 If ($Null -eq $Installed) {
     Install-Module -Name "Evergreen"
