@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
 	This script performs the installation or uninstallation of an application(s).
 	# LICENSE #
@@ -147,7 +147,7 @@ Try {
 
 		## <Perform Post-Installation tasks here>
 		Remove-Folder -Path "$env:SYSTEMDRIVE\temp" -ErrorAction SilentlyContinue 
-		Remove-File -Path "$envCommonDesktop\Adobe Acrobat DC.lnk" -ErrorAction SilentlyContinue
+		Remove-File -Path "$envCommonDesktop\Adobe Acrobat*.lnk" -ErrorAction SilentlyContinue
 
 		## Configure settings for Adobe Acrobat Reader DC
 		If ($Is64Bit) {
