@@ -1,10 +1,10 @@
 # Commands.txt
 
-Use commands.txt file to view installation, uninstallation and detection method.
+Use commands.txt file to view installation, uninstallation and detection methods.
 
 # VPN Profile
 
-Ensure that you edit lines 161+ to match your VPN profile requirements
+Ensure that you edit lines 161+ to match your VPN profile requirements in the Deploy-Application.ps1 script.
 
 # Updating
 
