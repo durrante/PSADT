@@ -8,4 +8,4 @@ Ensure that you edit lines 161+ to match your VPN profile requirements in the De
 
 # Updating
 
-If updating FortiClient to a later version for what is currently present, make sure to update the contents of the ps1 script in particular the registation window registry keys and the detection method.
+If updating FortiClient to a later version for what is currently present, make sure to update the contents of the ps1 script, in particular the registation window registry keys and the detection method via SCCM \ Intune to match the version you are deploying.
