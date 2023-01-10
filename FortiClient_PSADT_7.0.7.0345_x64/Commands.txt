@@ -1,0 +1,18 @@
+Install:
+
+.\ServiceUI.exe -Process:explorer.exe Deploy-Application.exe -DeploymentType install
+
+Uninstall:
+
+.\ServiceUI.exe -Process:explorer.exe Deploy-Application.exe -DeploymentType uninstall
+
+Detection:
+
+File
+
+	Path - %ProgramFiles%\Fortinet\FortiClient
+	File or folder - FortiClient.exe
+	Detection method - String (Version)
+	Operator - Greator than or equal to
+	Value - 7.0.7.0345
+	Associated with 32 bit app - No
