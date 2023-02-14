@@ -22,7 +22,7 @@ ElseIf ([System.Version]$Published.Version -gt [System.Version]$Installed.Versio
 $Notepadpp = Get-EvergreenApp -Name NotepadPlusPlus | Where-Object { $_.Architecture -eq "x64" -and $_.Type -eq "exe"}
 $NotepadppInstaller = $Notepadpp | Save-EvergreenApp -Path "C:\Temp\notepadpp"
 
-# Install WireShark
+# Install NotePad++
 Start-Process -FilePath "$NotepadppInstaller" -args "/S" -Wait -Verbose
 
 # Cleanup temp directory
