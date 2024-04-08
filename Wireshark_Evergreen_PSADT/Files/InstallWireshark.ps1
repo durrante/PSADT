@@ -19,7 +19,8 @@ ElseIf ([System.Version]$Published.Version -gt [System.Version]$Installed.Versio
 }
 
 # Download Latest version of WireShark via Evergreen
-$Wireshark = Get-EvergreenApp -Name WireShark | Where-Object { $_.Architecture -eq "x64" -and $_.Type -eq "msi"}
+$Wireshark = Get-EvergreenApp -Name WireShark | Where-Object { $_.Architecture -eq "x64" -and $_.Type -eq "msi"}  | `
+Sort-Object -Property @{ Expression = { [System.Version]$_.Version }; Descending = $true } | Select-Object -First 1
 $WiresharkInstaller = $Wireshark | Save-EvergreenApp -Path "C:\Temp\Wireshark"
 
 # Install WireShark

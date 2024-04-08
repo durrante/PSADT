@@ -67,8 +67,8 @@ Try {
 	[string]$appArch = 'x64'
 	[string]$appLang = 'EN'
 	[string]$appRevision = '1.0.0'
-	[string]$appScriptVersion = '1.0.0'
-	[string]$appScriptDate = '21/03/2022'
+	[string]$appScriptVersion = '2.0.0'
+	[string]$appScriptDate = '08/04/2024'
 	[string]$appScriptAuthor = 'Alex Durrant'
 	##*===============================================
 	## Variables: Install Titles (Only set here to override defaults set by the toolkit)
