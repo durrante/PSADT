@@ -1,61 +1,107 @@
 ﻿<#
 .SYNOPSIS
-	This script performs the installation or uninstallation of an application(s).
-	# LICENSE #
-	PowerShell App Deployment Toolkit - Provides a set of functions to perform common application deployment tasks on Windows.
-	Copyright (C) 2017 - Sean Lillis, Dan Cunningham, Muhammad Mashwani, Aman Motazedian.
-	This program is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version. This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
-	You should have received a copy of the GNU Lesser General Public License along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+PSApppDeployToolkit - This script performs the installation or uninstallation of an application(s).
+
 .DESCRIPTION
-	The script is provided as a template to perform an install or uninstall of an application(s).
-	The script either performs an "Install" deployment type or an "Uninstall" deployment type.
-	The install deployment type is broken down into 3 main sections/phases: Pre-Install, Install, and Post-Install.
-	The script dot-sources the AppDeployToolkitMain.ps1 script which contains the logic and functions required to install or uninstall an application.
+
+- The script is provided as a template to perform an install or uninstall of an application(s).
+- The script either performs an "Install" deployment type or an "Uninstall" deployment type.
+- The install deployment type is broken down into 3 main sections/phases: Pre-Install, Install, and Post-Install.
+
+The script dot-sources the AppDeployToolkitMain.ps1 script which contains the logic and functions required to install or uninstall an application.
+
+PSApppDeployToolkit is licensed under the GNU LGPLv3 License - (C) 2023 PSAppDeployToolkit Team (Sean Lillis, Dan Cunningham and Muhammad Mashwani).
+
+This program is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser General Public License as published by the
+Free Software Foundation, either version 3 of the License, or any later version. This program is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
+for more details. You should have received a copy of the GNU Lesser General Public License along with this program. If not, see <http://www.gnu.org/licenses/>.
+
 .PARAMETER DeploymentType
-	The type of deployment to perform. Default is: Install.
+
+The type of deployment to perform. Default is: Install.
+
 .PARAMETER DeployMode
-	Specifies whether the installation should be run in Interactive, Silent, or NonInteractive mode. Default is: Interactive. Options: Interactive = Shows dialogs, Silent = No dialogs, NonInteractive = Very silent, i.e. no blocking apps. NonInteractive mode is automatically set if it is detected that the process is not user interactive.
+
+Specifies whether the installation should be run in Interactive, Silent, or NonInteractive mode. Default is: Interactive. Options: Interactive = Shows dialogs, Silent = No dialogs, NonInteractive = Very silent, i.e. no blocking apps. NonInteractive mode is automatically set if it is detected that the process is not user interactive.
+
 .PARAMETER AllowRebootPassThru
-	Allows the 3010 return code (requires restart) to be passed back to the parent process (e.g. SCCM) if detected from an installation. If 3010 is passed back to SCCM, a reboot prompt will be triggered.
+
+Allows the 3010 return code (requires restart) to be passed back to the parent process (e.g. SCCM) if detected from an installation. If 3010 is passed back to SCCM, a reboot prompt will be triggered.
+
 .PARAMETER TerminalServerMode
-	Changes to "user install mode" and back to "user execute mode" for installing/uninstalling applications for Remote Destkop Session Hosts/Citrix servers.
+
+Changes to "user install mode" and back to "user execute mode" for installing/uninstalling applications for Remote Desktop Session Hosts/Citrix servers.
+
 .PARAMETER DisableLogging
-	Disables logging to file for the script. Default is: $false.
+
+Disables logging to file for the script. Default is: $false.
+
 .EXAMPLE
-    powershell.exe -Command "& { & '.\Deploy-Application.ps1' -DeployMode 'Silent'; Exit $LastExitCode }"
+
+powershell.exe -Command "& { & '.\Deploy-Application.ps1' -DeployMode 'Silent'; Exit $LastExitCode }"
+
 .EXAMPLE
-    powershell.exe -Command "& { & '.\Deploy-Application.ps1' -AllowRebootPassThru; Exit $LastExitCode }"
+
+powershell.exe -Command "& { & '.\Deploy-Application.ps1' -AllowRebootPassThru; Exit $LastExitCode }"
+
 .EXAMPLE
-    powershell.exe -Command "& { & '.\Deploy-Application.ps1' -DeploymentType 'Uninstall'; Exit $LastExitCode }"
+
+powershell.exe -Command "& { & '.\Deploy-Application.ps1' -DeploymentType 'Uninstall'; Exit $LastExitCode }"
+
 .EXAMPLE
-    Deploy-Application.exe -DeploymentType "Install" -DeployMode "Silent"
+
+Deploy-Application.exe -DeploymentType "Install" -DeployMode "Silent"
+
+.INPUTS
+
+None
+
+You cannot pipe objects to this script.
+
+.OUTPUTS
+
+None
+
+This script does not generate any output.
+
 .NOTES
-	Toolkit Exit Code Ranges:
-	60000 - 68999: Reserved for built-in exit codes in Deploy-Application.ps1, Deploy-Application.exe, and AppDeployToolkitMain.ps1
-	69000 - 69999: Recommended for user customized exit codes in Deploy-Application.ps1
-	70000 - 79999: Recommended for user customized exit codes in AppDeployToolkitExtensions.ps1
+
+Toolkit Exit Code Ranges:
+- 60000 - 68999: Reserved for built-in exit codes in Deploy-Application.ps1, Deploy-Application.exe, and AppDeployToolkitMain.ps1
+- 69000 - 69999: Recommended for user customized exit codes in Deploy-Application.ps1
+- 70000 - 79999: Recommended for user customized exit codes in AppDeployToolkitExtensions.ps1
+
 .LINK
-	http://psappdeploytoolkit.com
+
+https://psappdeploytoolkit.com
 #>
+
+
 [CmdletBinding()]
 Param (
-	[Parameter(Mandatory=$false)]
-	[ValidateSet('Install','Uninstall','Repair')]
-	[string]$DeploymentType = 'Install',
-	[Parameter(Mandatory=$false)]
-	[ValidateSet('Interactive','Silent','NonInteractive')]
-	[string]$DeployMode = 'Interactive',
-	[Parameter(Mandatory=$false)]
-	[switch]$AllowRebootPassThru = $false,
-	[Parameter(Mandatory=$false)]
-	[switch]$TerminalServerMode = $false,
-	[Parameter(Mandatory=$false)]
-	[switch]$DisableLogging = $false
+    [Parameter(Mandatory = $false)]
+    [ValidateSet('Install', 'Uninstall', 'Repair')]
+    [String]$DeploymentType = 'Install',
+    [Parameter(Mandatory = $false)]
+    [ValidateSet('Interactive', 'Silent', 'NonInteractive')]
+    [String]$DeployMode = 'Interactive',
+    [Parameter(Mandatory = $false)]
+    [switch]$AllowRebootPassThru = $false,
+    [Parameter(Mandatory = $false)]
+    [switch]$TerminalServerMode = $false,
+    [Parameter(Mandatory = $false)]
+    [switch]$DisableLogging = $false
 )
 
 Try {
-	## Set the script execution policy for this process
-	Try { Set-ExecutionPolicy -ExecutionPolicy 'ByPass' -Scope 'Process' -Force -ErrorAction 'Stop' } Catch {}
+    ## Set the script execution policy for this process
+    Try {
+        Set-ExecutionPolicy -ExecutionPolicy 'ByPass' -Scope 'Process' -Force -ErrorAction 'Stop'
+    }
+    Catch {
+    }
 
 	##*===============================================
 	##* VARIABLE DECLARATION
@@ -75,40 +121,68 @@ Try {
 	[string]$installName = ''
 	[string]$installTitle = ''
 
-	##* Do not modify section below
-	#region DoNotModify
+    ##* Do not modify section below
+    #region DoNotModify
 
-	## Variables: Exit Code
-	[int32]$mainExitCode = 0
+    ## Variables: Exit Code
+    [Int32]$mainExitCode = 0
 
-	## Variables: Script
-	[string]$deployAppScriptFriendlyName = 'Deploy Application'
-	[version]$deployAppScriptVersion = [version]'3.8.4'
-	[string]$deployAppScriptDate = '26/01/2021'
-	[hashtable]$deployAppScriptParameters = $psBoundParameters
+    ## Variables: Script
+    [String]$deployAppScriptFriendlyName = 'Deploy Application'
+    [Version]$deployAppScriptVersion = [Version]'3.9.3'
+    [String]$deployAppScriptDate = '02/05/2023'
+    [Hashtable]$deployAppScriptParameters = $PsBoundParameters
 
-	## Variables: Environment
-	If (Test-Path -LiteralPath 'variable:HostInvocation') { $InvocationInfo = $HostInvocation } Else { $InvocationInfo = $MyInvocation }
-	[string]$scriptDirectory = Split-Path -Path $InvocationInfo.MyCommand.Definition -Parent
+    ## Variables: Environment
+    If (Test-Path -LiteralPath 'variable:HostInvocation') {
+        $InvocationInfo = $HostInvocation
+    }
+    Else {
+        $InvocationInfo = $MyInvocation
+    }
+    [String]$scriptDirectory = Split-Path -Path $InvocationInfo.MyCommand.Definition -Parent
 
-	## Dot source the required App Deploy Toolkit Functions
-	Try {
-		[string]$moduleAppDeployToolkitMain = "$scriptDirectory\AppDeployToolkit\AppDeployToolkitMain.ps1"
-		If (-not (Test-Path -LiteralPath $moduleAppDeployToolkitMain -PathType 'Leaf')) { Throw "Module does not exist at the specified location [$moduleAppDeployToolkitMain]." }
-		If ($DisableLogging) { . $moduleAppDeployToolkitMain -DisableLogging } Else { . $moduleAppDeployToolkitMain }
-	}
-	Catch {
-		If ($mainExitCode -eq 0){ [int32]$mainExitCode = 60008 }
-		Write-Error -Message "Module [$moduleAppDeployToolkitMain] failed to load: `n$($_.Exception.Message)`n `n$($_.InvocationInfo.PositionMessage)" -ErrorAction 'Continue'
-		## Exit the script, returning the exit code to SCCM
-		If (Test-Path -LiteralPath 'variable:HostInvocation') { $script:ExitCode = $mainExitCode; Exit } Else { Exit $mainExitCode }
-	}
+    ## Dot source the required App Deploy Toolkit Functions
+    Try {
+        [String]$moduleAppDeployToolkitMain = "$scriptDirectory\AppDeployToolkit\AppDeployToolkitMain.ps1"
+        If (-not (Test-Path -LiteralPath $moduleAppDeployToolkitMain -PathType 'Leaf')) {
+            Throw "Module does not exist at the specified location [$moduleAppDeployToolkitMain]."
+        }
+        If ($DisableLogging) {
+            . $moduleAppDeployToolkitMain -DisableLogging
+        }
+        Else {
+            . $moduleAppDeployToolkitMain
+        }
+    }
+    Catch {
+        If ($mainExitCode -eq 0) {
+            [Int32]$mainExitCode = 60008
+        }
+        Write-Error -Message "Module [$moduleAppDeployToolkitMain] failed to load: `n$($_.Exception.Message)`n `n$($_.InvocationInfo.PositionMessage)" -ErrorAction 'Continue'
+        ## Exit the script, returning the exit code to SCCM
+        If (Test-Path -LiteralPath 'variable:HostInvocation') {
+            $script:ExitCode = $mainExitCode; Exit
+        }
+        Else {
+            Exit $mainExitCode
+        }
+    }
 
-	#endregion
-	##* Do not modify section above
-	##*===============================================
-	##* END VARIABLE DECLARATION
-	##*===============================================
+	## Global Variables
+	[boolean]$configShowBalloonNotifications = $false ## This will overwrite the same variable that's inside AppDeployToolKitMain.ps1
+	[boolean]$forceSilentInstallation = $false
+
+	[boolean]$DefaultDetection = $true
+	
+	[int]$Defertimes = 0
+	[int]$CloseAppsCountDownSeconds = 900
+
+    #endregion
+    ##* Do not modify section above
+    ##*===============================================
+    ##* END VARIABLE DECLARATION
+    ##*===============================================
 
 	If ($deploymentType -ine 'Uninstall' -and $deploymentType -ine 'Repair') {
 		##*===============================================
@@ -137,9 +211,44 @@ Try {
 		}
 
 		## <Perform Installation tasks here>
-		[string]$MyArguments = "-ExecutionPolicy Bypass -NoLogo -File `"$dirFiles\InstallAdobeReaderDC.ps1`" "
-		Execute-Process -Path "$PSHOME\powershell.exe" -Arguments $MyArguments
+		# Trust PowerShell Gallery
+		If ((Get-PSRepository | Where-Object { $_.Name -eq "PSGallery" -and $_.InstallationPolicy -ne "Trusted" })) {
+		    # Install NuGet package provider, which is required to trust the PowerShell Gallery
+		    Install-PackageProvider -Name "NuGet" -MinimumVersion 2.8.5.208 -Force
+		    # Trust the PowerShell Gallery
+		    Set-PSRepository -Name "PSGallery" -InstallationPolicy "Trusted"
+		}
 		
+		# Install or update Evergreen module
+		$InstalledEvergreen = Get-Module -Name "Evergreen" -ListAvailable | Sort-Object -Property Version -Descending | Select-Object -First 1
+		$PublishedEvergreen = Find-Module -Name "Evergreen"
+		
+		If ($null -eq $InstalledEvergreen) {
+		    # Evergreen module is not installed, so install it
+		    Install-Module -Name "Evergreen"
+		}
+		ElseIf ($PublishedEvergreen.Version -gt $InstalledEvergreen.Version) {
+		    # A newer version of the Evergreen module is available, so update it
+		    Update-Module -Name "Evergreen"
+		}
+		
+		# Application-specific variables
+		$appName = "AdobeAcrobatReaderDC"
+		$appLang = "English (UK)"
+		$appArch = "x64"
+		$tempPath = "C:\Temp\$appName"
+		
+		# Download the latest stable version of the application using the Evergreen module
+		$appInfo = Get-EvergreenApp -Name $appName | Where-Object { $_.Architecture -eq $appArch -and $_.Type -eq $appType -and $_.Language -eq $appLang}  | `
+		Sort-Object -Property @{ Expression = { [System.Version]$_.Version }; Descending = $true } | Select-Object -First 1		
+		$installerPath = $appInfo | Save-EvergreenApp -Path $tempPath
+
+		# Install cmd
+        Execute-Process -Path "$installerPath" -Parameters "/sAll /msi /norestart /quiet ALLUSERS=1 EULA_ACCEPT=YES" -WindowStyle Hidden -Wait
+
+		# Sleep 15 seconds
+		Start-Sleep 15
+
 		##*===============================================
 		##* POST-INSTALLATION
 		##*===============================================
@@ -209,7 +318,7 @@ Try {
 		[string]$installPhase = 'Post-Uninstallation'
 
 		## <Perform Post-Uninstallation tasks here>
-		Remove-MSIApplications -Name 'Adobe Acrobat DC'
+		Remove-MSIApplications -Name 'Adobe Acrobat'
 
 		##*===============================================
 		##* POST-UNINSTALLATION
