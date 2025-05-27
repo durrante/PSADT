@@ -1,0 +1,56 @@
+<#
+.SYNOPSIS
+    Customised Win32App Detection Script
+.DESCRIPTION
+    This script identifies if a specific software, defined by its display name, is installed on the system.
+    It checks the uninstall keys in the registry and reports back.
+.EXAMPLE
+    $TargetSoftware = 'Firefox'  # Searches for an uninstall key with the display name 'Firefox'
+#>
+
+# Define the name of the software to search for
+$TargetSoftware = 'Audacity'
+
+# Function to fetch uninstall keys from the registry
+function Fetch-UninstallKeys {
+    [CmdletBinding()]
+    param (
+        [string]$TargetName
+    )
+
+    # Continue on error
+    $ErrorActionPreference = 'Continue'
+
+    # Define uninstall registry paths
+    $registryPaths = @(
+        "registry::HKLM\Software\Microsoft\Windows\CurrentVersion\Uninstall",
+        "registry::HKLM\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall"
+    )
+
+    # Initialize software list
+    $softwareList = @()
+
+    # Loop through each registry path to find software
+    foreach ($path in $registryPaths) {
+        $softwareList += Get-ChildItem $path | Get-ItemProperty | Where-Object { $_.DisplayName } | Sort-Object DisplayName
+    }
+
+    # Filter software list based on target name
+    if ($TargetName) {
+        $softwareList | Where-Object { $_.DisplayName -like "*$TargetName*" }
+    } else {
+        $softwareList | Sort-Object DisplayName -Unique
+    }
+}
+
+# Main script logic
+$DetectedSoftware = Fetch-UninstallKeys -TargetName $TargetSoftware
+
+# Check if software is installed and output result
+if ($DetectedSoftware) {
+    Write-Host "$TargetSoftware is installed."
+    #exit 0
+} else {
+    Write-Host "$TargetSoftware is NOT installed."
+    #exit 1
+}
