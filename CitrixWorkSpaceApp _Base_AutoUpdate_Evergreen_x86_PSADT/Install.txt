@@ -1,0 +1,16 @@
+Note: Detection method looks for the installation of workspace app, regardless of versions. This is to be used as available within the company portal app.
+
+Install:
+
+.\ServiceUI.exe -Process:explorer.exe Deploy-Application.exe -DeploymentType install
+
+Uninstall:
+
+.\ServiceUI.exe -Process:explorer.exe Deploy-Application.exe -DeploymentType uninstall
+
+Detection (registry):
+
+Key path: HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\CitrixOnlinePluginPackWeb
+Value name: DisplayVersion
+Detection method: Value Exists
+Associated with a 32-bit app on 64-bit clients: Yes
