@@ -113,8 +113,8 @@ Try {
 	[string]$appArch = 'x86'
 	[string]$appLang = 'mui'
 	[string]$appRevision = '1.0'
-	[string]$appScriptVersion = '1.0.0'
-	[string]$appScriptDate = '08/02/2024'
+	[string]$appScriptVersion = '1.1.0'
+	[string]$appScriptDate = '25/06/2025'
 	[string]$appScriptAuthor = 'Alex Durrant'
     ##*===============================================
     ## Variables: Install Titles (Only set here to override defaults set by the toolkit)
@@ -206,13 +206,6 @@ Try {
         
 
         ## <Perform Pre-Installation tasks here>
-
-		## Install .Net Desktop Runtime x86
-		Execute-Process -Path "$dirFiles\windowsdesktop-runtime-6.0.25-win-x86.exe" -Parameters "/install /quiet /norestart" -WindowStyle Hidden -WaitForMsiExec -IgnoreExitCodes "1638"
-
-		## Install VCRed 2015-2022 x86
-		Execute-Process -Path "$dirFiles\VC_redist.x86.exe" -Parameters "/quiet /norestart" -WindowStyle Hidden -IgnoreExitCodes "1638"
-
 		If (Get-Process -Name "TrolleyExpress" -EA 0) { Stop-Process -Name "TrolleyExpress" -Force -EA 0 }
 		
 		## Check if Microsoft Store app is present
@@ -273,11 +266,12 @@ Try {
 		
 		# Application-specific variables
 		$appName = "CitrixWorkspaceApp"
-		$appTitle = "Citrix Workspace - Current Release"
+		$appStream = "Current"
 		$tempPath = "C:\Temp\$appName"
 		
 		# Download the latest stable version of the application using the Evergreen module
-		$appInfo = Get-EvergreenApp -Name $appName | Where-Object { $_.Title -eq $appTitle}
+		$appInfo = Get-EvergreenApp -Name $appName | Where-Object { $_.Stream -eq $appStream} | `
+        Sort-Object -Property @{ Expression = { [System.Version]$_.Version }; Descending = $true } | Select-Object -First 1
 		$installerPath = $appInfo | Save-EvergreenApp -Path $tempPath
 
 		# Install Citrix
