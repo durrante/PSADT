@@ -114,7 +114,7 @@ Try {
 	[string]$appLang = 'mui'
 	[string]$appRevision = '1.0'
 	[string]$appScriptVersion = '1.1.0'
-	[string]$appScriptDate = '25/06/2025'
+	[string]$appScriptDate = '26/06/2025'
 	[string]$appScriptAuthor = 'Alex Durrant'
     ##*===============================================
     ## Variables: Install Titles (Only set here to override defaults set by the toolkit)
