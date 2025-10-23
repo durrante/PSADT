@@ -149,7 +149,7 @@ Try {
 		## Installs latest version of SSMS via Evergreen PowerShell module
 
 		# Trust PowerShell Gallery
-		If (Get-PSRepository | Where-Object { $_.Name -eq "PSGallery" -and $_.InstallationPolicy -ne "Trusted" }) {
+		if (Get-PSRepository | Where-Object { $_.Name -eq "PSGallery" -and $_.InstallationPolicy -ne "Trusted" }) {
 			Install-PackageProvider -Name "NuGet" -MinimumVersion 2.8.5.208 -Force
 			Set-PSRepository -Name "PSGallery" -InstallationPolicy "Trusted"
 		}
@@ -159,15 +159,19 @@ Try {
 			Sort-Object -Property @{ Expression = { [System.Version]$_.Version }; Descending = $true } | `
 			Select-Object -First 1
 		$Published = Find-Module -Name "Evergreen"
-		If ($Null -eq $Installed) {
+		if ($Null -eq $Installed) {
 			Install-Module -Name "Evergreen"
 		}
-		ElseIf ([System.Version]$Published.Version -gt [System.Version]$Installed.Version) {
+		elseif ([System.Version]$Published.Version -gt [System.Version]$Installed.Version) {
 			Update-Module -Name "Evergreen"
 		}
+		
+		## Download latest manifest
+		Update-Evergreen -force
 
 		# Download Latest version of SSMS via Evergreen
-		$SSMS = Get-EvergreenApp -Name MicrosoftSsms | Where-Object { $_.Language -eq "English"}
+		$SSMS = Get-EvergreenApp -Name MicrosoftSsms | Where-Object { $_.Language -eq "English"} | `
+		Sort-Object -Property @{ Expression = { [System.Version]$_.Version }; Descending = $true } | Select-Object -First 1	
 		$Installer = $SSMS | Save-EvergreenApp -Path "C:\Temp\SSMS"
 
 		# Install Command
@@ -185,9 +189,8 @@ Try {
 		[string]$installPhase = 'Post-Installation'
 
 		## <Perform Post-Installation tasks here>
-		Remove-Folder -Path "$env:SYSTEMDRIVE\temp" -ErrorAction SilentlyContinue 
+		Remove-File -Path $Installer -ErrorAction SilentlyContinue 
 		
-
 		## Display a message at the end of the install
 		## If (-not $useDefaultMsi) { Show-InstallationPrompt -Message 'You can customize text to appear at the end of an install or remove it completely for unattended installations.' -ButtonRightText 'OK' -Icon Information -NoWait }
 	}
