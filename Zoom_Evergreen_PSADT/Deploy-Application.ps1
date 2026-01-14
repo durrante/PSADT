@@ -232,6 +232,9 @@ Try {
 		    # A newer version of the Evergreen module is available, so update it
 		    Update-Module -Name "Evergreen"
 		}
+
+		## Download latest manifest
+		Update-Evergreen -force
 		
 		# Application-specific variables
 		$appName = "Zoom"
