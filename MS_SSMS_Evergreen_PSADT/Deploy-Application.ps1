@@ -67,8 +67,8 @@ Try {
 	[string]$appArch = 'x64'
 	[string]$appLang = 'EN'
 	[string]$appRevision = 'Latest'
-	[string]$appScriptVersion = '1.0.0'
-	[string]$appScriptDate = '14/10/2022'
+	[string]$appScriptVersion = '1.1.0'
+	[string]$appScriptDate = '18/02/2026'
 	[string]$appScriptAuthor = 'Alex Durrant'
 	##*===============================================
 	## Variables: Install Titles (Only set here to override defaults set by the toolkit)
@@ -123,16 +123,6 @@ Try {
 		## Show-InstallationProgress
 
 		## <Perform Pre-Installation tasks here>
-        ## Remove Any Existing Versions of SQL Server Management Studio
-        $SSMSPath = Get-ChildItem -Path "C:\ProgramData\Package Cache\*" -Include SSMS-Setup*.exe -Recurse -ErrorAction SilentlyContinue
-        ForEach ($SSMS in $SSMSPath)
-        {
-        Write-Log -Message "Found $($SSMS.FullName), now attempting to uninstall existing versions of $installTitle."
-        Execute-Process -Path "$SSMS" -Parameters "/uninstall /quiet /norestart" -WindowStyle Hidden
-        Start-Sleep -Seconds 5
-        }
-
-
 
 		##*===============================================
 		##* INSTALLATION
@@ -170,16 +160,16 @@ Try {
 		Update-Evergreen -force
 
 		# Download Latest version of SSMS via Evergreen
-		$SSMS = Get-EvergreenApp -Name MicrosoftSsms | Where-Object { $_.Language -eq "English"} | `
+		$SSMS = Get-EvergreenApp -Name MicrosoftSsms | Where-Object { $_.Type -eq "exe"} | `
 		Sort-Object -Property @{ Expression = { [System.Version]$_.Version }; Descending = $true } | Select-Object -First 1	
 		$Installer = $SSMS | Save-EvergreenApp -Path "C:\Temp\SSMS"
 
 		# Install Command
-        $ExePath = Get-ChildItem -Path "$Installer" -Include SSMS-Setup*.exe -File -Recurse -ErrorAction SilentlyContinue
+        $ExePath = Get-ChildItem -Path "$Installer" -Include vs_SSMS*.exe -File -Recurse -ErrorAction SilentlyContinue
         If($ExePath.Exists)
         {
         Write-Log -Message "Found $($ExePath.FullName), now attempting to install $installTitle."
-        Execute-Process -Path "$ExePath" -Parameters "/install /quiet /norestart" -WindowStyle Hidden
+        Execute-Process -Path "$ExePath" -Parameters "--quiet --norestart --wait" -WindowStyle Hidden
         Start-Sleep -Seconds 5
         }
 		
@@ -222,14 +212,8 @@ Try {
 		}
 
 		# <Perform Uninstallation tasks here>
-        ## Uninstall Any Existing Versions of SQL Server Management Studio
-        $SSMSPath = Get-ChildItem -Path "C:\ProgramData\Package Cache\*" -Include SSMS-Setup*.exe -Recurse -ErrorAction SilentlyContinue
-        ForEach ($SSMS in $SSMSPath)
-        {
-        Write-Log -Message "Found $($SSMS.FullName), now attempting to uninstall existing versions of $installTitle."
-        Execute-Process -Path "$SSMS" -Parameters "/uninstall /quiet /norestart" -WindowStyle Hidden
-        Start-Sleep -Seconds 5
-        }
+
+		}
 		##*===============================================
 		##* POST-UNINSTALLATION
 		##*===============================================
