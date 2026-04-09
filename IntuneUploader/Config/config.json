@@ -1,0 +1,8 @@
+{
+  "TenantID": "5b1849e9-3608-4306-99bd-7435a0f2620c",
+  "ClientID": "7babe1da-a9ce-4864-8e38-7666621e9c44",
+  "DefaultOutputPath": "C:\\Users\\me\\Downloads\\IntunePackage",
+  "DocumentationPath": "C:\\Users\\me\\Downloads\\IntuneDocs",
+  "IntuneWinAppUtilPath": "D:\\OneDrive\\OneDrive - Alexdu\\Documents\\GitHub\\PSADT\\IntuneUploader\\Tools\\IntuneWinAppUtil.exe",
+  "DefaultTemplate": "PSADT-Default"
+}

@@ -1,0 +1,33 @@
+{
+  "TemplateName": "Generic-Default",
+  "Description": "Default settings for non-PSADT Win32 applications. Install and uninstall commands must be specified per application.",
+  "InternalNote": "Standard Win32 EXE/MSI deployment. No PSADT wrapper.",
+  "IsPSADT": false,
+
+  "InstallCommandLine": "",
+  "UninstallCommandLine": "",
+
+  "InstallExperience": "system",
+  "RestartBehavior": "suppress",
+
+  "Architecture": "x64",
+  "MinimumSupportedWindowsRelease": "W10_2004",
+
+  "MaximumInstallationTimeInMinutes": 60,
+  "AllowAvailableUninstall": false,
+
+  "ReturnCodes": [
+    { "ReturnCode": 0,    "Type": "success"   },
+    { "ReturnCode": 3010, "Type": "softReboot"},
+    { "ReturnCode": 1641, "Type": "hardReboot"},
+    { "ReturnCode": 1618, "Type": "retry"     }
+  ],
+
+  "Assignment": {
+    "Type": "AllDevices",
+    "Intent": "required",
+    "Notification": "showAll",
+    "GroupName": null,
+    "GroupID": null
+  }
+}

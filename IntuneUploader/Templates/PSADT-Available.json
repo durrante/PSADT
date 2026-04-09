@@ -1,0 +1,34 @@
+{
+  "TemplateName": "PSADT-Available",
+  "Description": "PSADT v4 applications published as Available in Company Portal for All Users. User can install on demand.",
+  "InternalNote": "Uses PSAppDeployToolkit v4. Published as Available (not Required). Users install via Company Portal. Uninstall from portal also enabled.",
+  "IsPSADT": true,
+
+  "InstallCommandLine": "Invoke-AppDeployToolkit.exe -DeployMode Silent",
+  "UninstallCommandLine": "Invoke-AppDeployToolkit.exe -DeploymentType Uninstall -DeployMode Silent",
+
+  "InstallExperience": "system",
+  "RestartBehavior": "suppress",
+
+  "Architecture": "x64",
+  "MinimumSupportedWindowsRelease": "W10_2004",
+
+  "MaximumInstallationTimeInMinutes": 60,
+  "AllowAvailableUninstall": true,
+
+  "ReturnCodes": [
+    { "ReturnCode": 0,    "Type": "success"   },
+    { "ReturnCode": 1707, "Type": "success"   },
+    { "ReturnCode": 3010, "Type": "softReboot"},
+    { "ReturnCode": 1641, "Type": "hardReboot"},
+    { "ReturnCode": 1618, "Type": "retry"     }
+  ],
+
+  "Assignment": {
+    "Type": "AllUsers",
+    "Intent": "available",
+    "Notification": "showAll",
+    "GroupName": null,
+    "GroupID": null
+  }
+}

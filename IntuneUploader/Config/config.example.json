@@ -1,0 +1,13 @@
+{
+  "_comment": "Copy this file to config.json and fill in your values. Run Setup-IntuneUploader.ps1 to generate this automatically.",
+
+  "TenantID": "YOUR-TENANT-ID-HERE",
+  "ClientID": "YOUR-APP-REGISTRATION-CLIENT-ID-HERE",
+
+  "DefaultOutputPath": "C:\\IntunePackages\\Output",
+  "DocumentationPath": "C:\\IntunePackages\\Docs",
+
+  "IntuneWinAppUtilPath": "C:\\IntuneUploader\\Tools\\IntuneWinAppUtil.exe",
+
+  "DefaultTemplate": "PSADT-Default"
+}
