@@ -171,33 +171,75 @@ foreach ($folder in $folders) {
 
 #endregion
 
-#region 5. App Registration guidance
-Write-Header 'Step 5: Entra ID App Registration'
+#region 5. Authentication method
+Write-Header 'Step 5: Authentication Method'
 
 Write-Host @'
-This tool uses DELEGATED permissions (interactive browser login).
-You need an Entra ID (Azure AD) App Registration with:
+Choose how this tool authenticates to Microsoft Graph / Intune:
 
-  1. Go to: https://portal.azure.com > Entra ID > App registrations > New registration
-  2. Name:      IntuneWin32Uploader (or any name)
-  3. Supported account types: Accounts in this organisational directory only
-  4. Redirect URI: Public client/native (mobile & desktop) -> http://localhost
-  5. Click Register
+  [A] Microsoft Graph Command Line Tools  (RECOMMENDED)
+      - No app registration required
+      - Uses Microsoft's built-in public client application
+      - You only consent to permissions once in the browser
+      - Ideal for IT admins who don't have access to Entra to create app registrations
 
-  6. Go to API Permissions > Add a permission > Microsoft Graph > Delegated:
-       - DeviceManagementApps.ReadWrite.All
-       - Group.Read.All
-  7. Click "Grant admin consent"
-
-  8. Go to Authentication:
-       - Under "Advanced settings", enable "Allow public client flows" -> Yes
-       - Save
-
-  9. Copy the Application (client) ID and Directory (tenant) ID from the Overview page.
+  [B] Custom App Registration
+      - You create and manage your own Entra ID app registration
+      - Tighter control over which accounts can use the tool
+      - Requires an Entra ID admin to create the registration and grant consent
 
 '@
 
-Read-Host 'Press Enter once your app registration is ready...'
+$authChoice = ''
+while ($authChoice -notin @('A','B','a','b')) {
+    $authChoice = Read-Host 'Enter A or B'
+}
+$authChoice = $authChoice.ToUpper()
+
+$graphCliClientId = '14d82eec-204b-4c2f-b7e8-296a70dab67e'   # Microsoft Graph Command Line Tools
+
+if ($authChoice -eq 'A') {
+    Write-Host ''
+    Write-OK 'Using Microsoft Graph Command Line Tools (no app registration needed).'
+    Write-Host ''
+    Write-Host '  Required delegated permissions (user consents on first login):' -ForegroundColor Gray
+    Write-Host '    - DeviceManagementApps.ReadWrite.All    (upload/manage Win32 apps)' -ForegroundColor Gray
+    Write-Host '    - DeviceManagementConfiguration.Read.All (read assignment filters)' -ForegroundColor Gray
+    Write-Host '    - Group.Read.All                         (resolve group names for assignment)' -ForegroundColor Gray
+    Write-Host '    - User.Read                              (display signed-in user name)' -ForegroundColor Gray
+    Write-Host ''
+    Write-Host '  On first login a browser will open. Sign in and accept the permissions listed above.' -ForegroundColor Gray
+    Write-Host '  If your tenant requires admin consent, ask your admin to visit:' -ForegroundColor Gray
+    Write-Host "  https://login.microsoftonline.com/YOUR-TENANT-ID/adminconsent?client_id=$graphCliClientId" -ForegroundColor Cyan
+    Write-Host ''
+    $authMethod = 'MicrosoftGraphCLI'
+    $clientId   = $graphCliClientId
+}
+else {
+    Write-Host ''
+    Write-Host '  Creating an Entra ID App Registration:' -ForegroundColor Gray
+    Write-Host ''
+    Write-Host '  1. portal.azure.com > Entra ID > App registrations > New registration' -ForegroundColor Gray
+    Write-Host '  2. Name: IntuneWin32Uploader (any name)' -ForegroundColor Gray
+    Write-Host '  3. Supported account types: This organisational directory only' -ForegroundColor Gray
+    Write-Host '  4. Redirect URI: Public client/native -> http://localhost' -ForegroundColor Gray
+    Write-Host '  5. Click Register' -ForegroundColor Gray
+    Write-Host ''
+    Write-Host '  6. API Permissions > Add > Microsoft Graph > Delegated:' -ForegroundColor Gray
+    Write-Host '       DeviceManagementApps.ReadWrite.All' -ForegroundColor Yellow
+    Write-Host '       DeviceManagementConfiguration.Read.All' -ForegroundColor Yellow
+    Write-Host '       Group.Read.All' -ForegroundColor Yellow
+    Write-Host '       User.Read' -ForegroundColor Yellow
+    Write-Host '  7. Click "Grant admin consent for [your org]"' -ForegroundColor Gray
+    Write-Host ''
+    Write-Host '  8. Authentication > Advanced settings > Allow public client flows -> Yes -> Save' -ForegroundColor Gray
+    Write-Host ''
+    Write-Host '  9. Copy the Application (client) ID from the Overview page.' -ForegroundColor Gray
+    Write-Host ''
+    Read-Host '  Press Enter once your app registration is ready'
+    $authMethod = 'CustomApp'
+    $clientId   = ''   # collected below
+}
 
 #endregion
 
@@ -205,7 +247,7 @@ Read-Host 'Press Enter once your app registration is ready...'
 Write-Header 'Step 6: Configuration'
 
 # Load existing config if present
-$configPath    = Join-Path $ToolRoot 'Config\config.json'
+$configPath     = Join-Path $ToolRoot 'Config\config.json'
 $existingConfig = $null
 if (Test-Path $configPath) {
     try { $existingConfig = Get-Content $configPath -Raw | ConvertFrom-Json } catch {}
@@ -223,16 +265,22 @@ function Get-CfgVal {
     return $Default
 }
 
-$tenantId       = Read-HostDefault -Prompt 'Tenant ID (Directory ID)'    -Default (Get-CfgVal 'TenantID')
-$clientId       = Read-HostDefault -Prompt 'Client ID (Application ID)'  -Default (Get-CfgVal 'ClientID')
+$tenantId = Read-HostDefault -Prompt 'Tenant ID (Directory ID)' -Default (Get-CfgVal 'TenantID')
+
+if ($authMethod -eq 'CustomApp') {
+    $clientId = Read-HostDefault -Prompt 'Client ID (Application ID)' -Default (Get-CfgVal 'ClientID')
+}
+else {
+    Write-Host "Client ID: $clientId  (Microsoft Graph Command Line Tools — fixed)" -ForegroundColor Gray
+}
 
 Write-Host ''
 Write-Host 'Default output folder for .intunewin packages (all apps unless overridden per-app):' -ForegroundColor Gray
-$defaultOutput  = Read-HostPath -Prompt 'Output folder' -Default (Get-CfgVal 'DefaultOutputPath')
+$defaultOutput = Read-HostPath -Prompt 'Output folder' -Default (Get-CfgVal 'DefaultOutputPath')
 
 Write-Host ''
 Write-Host 'Documentation folder (where app docs/logos are saved):' -ForegroundColor Gray
-$defaultDocs    = Read-HostPath -Prompt 'Docs folder'   -Default (Get-CfgVal 'DocumentationPath' (Join-Path $ToolRoot 'Docs'))
+$defaultDocs = Read-HostPath -Prompt 'Docs folder' -Default (Get-CfgVal 'DocumentationPath' (Join-Path $ToolRoot 'Docs'))
 
 Write-Host ''
 Write-Host 'Default Intune app template to apply:' -ForegroundColor Gray
@@ -250,12 +298,13 @@ foreach ($dir in @($defaultOutput, $defaultDocs)) {
 }
 
 $config = [ordered]@{
-    TenantID            = $tenantId
-    ClientID            = $clientId
-    DefaultOutputPath   = $defaultOutput
-    DocumentationPath   = $defaultDocs
+    AuthMethod           = $authMethod
+    TenantID             = $tenantId
+    ClientID             = $clientId
+    DefaultOutputPath    = $defaultOutput
+    DocumentationPath    = $defaultDocs
     IntuneWinAppUtilPath = $utilPath
-    DefaultTemplate     = $defaultTemplate
+    DefaultTemplate      = $defaultTemplate
 }
 
 $config | ConvertTo-Json -Depth 5 | Set-Content -Path $configPath -Encoding UTF8
@@ -286,7 +335,15 @@ foreach ($tpl in $templateSources) {
 #region 8. Test authentication
 Write-Header 'Step 8: Test Authentication'
 
-Write-Host 'Testing interactive login to Intune...' -ForegroundColor Gray
+if ($authMethod -eq 'MicrosoftGraphCLI') {
+    Write-Host "Auth method:  Microsoft Graph Command Line Tools" -ForegroundColor Gray
+    Write-Host "Client ID:    $clientId" -ForegroundColor Gray
+} else {
+    Write-Host "Auth method:  Custom App Registration" -ForegroundColor Gray
+    Write-Host "Client ID:    $clientId" -ForegroundColor Gray
+}
+Write-Host "Tenant ID:    $tenantId" -ForegroundColor Gray
+Write-Host ''
 Write-Host 'A browser window will open for you to sign in.' -ForegroundColor Gray
 Write-Host ''
 
@@ -299,7 +356,12 @@ try {
 }
 catch {
     Write-Fail "Authentication failed: $_"
-    Write-Host '  Check your Tenant ID, Client ID, and app registration permissions.' -ForegroundColor Gray
+    if ($authMethod -eq 'MicrosoftGraphCLI') {
+        Write-Host '  Check your Tenant ID. If your tenant requires admin consent, ask your admin to visit:' -ForegroundColor Gray
+        Write-Host "  https://login.microsoftonline.com/$tenantId/adminconsent?client_id=$clientId" -ForegroundColor Cyan
+    } else {
+        Write-Host '  Check your Tenant ID, Client ID, app registration permissions, and that public client flows are enabled.' -ForegroundColor Gray
+    }
 }
 
 #endregion

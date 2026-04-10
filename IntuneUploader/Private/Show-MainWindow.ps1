@@ -251,25 +251,43 @@ function Show-MainWindow {
         $txtFooter.Text = 'Connecting...'
         try {
             Import-Module IntuneWin32App -Force -ErrorAction Stop
-            Connect-MSIntuneGraph -TenantID $Config.TenantID -ClientID $Config.ClientID -Interactive -ErrorAction Stop
 
-            # Signed-in user
+            # Determine effective ClientID:
+            # Microsoft Graph CLI (built-in public client — no app registration needed)
+            # or Custom App Registration stored in config
+            $effectiveClientID = if ($Config.AuthMethod -eq 'MicrosoftGraphCLI' -or -not $Config.ClientID) {
+                '14d82eec-204b-4c2f-b7e8-296a70dab67e'   # Microsoft Graph Command Line Tools
+            } else {
+                $Config.ClientID
+            }
+
+            # Single browser login — opens exactly once
+            Connect-MSIntuneGraph -TenantID $Config.TenantID -ClientID $effectiveClientID -Interactive -ErrorAction Stop
+
+            # Store for Invoke-TenantGraphRequest MSAL silent fallback
+            $global:IntuneUploaderClientID = $effectiveClientID
+            $global:IntuneUploaderTenantID = $Config.TenantID
+
+            # Signed-in user — Invoke-MSGraphRequest uses token stored by Connect-MSIntuneGraph, no browser
             $userLabel = ''
             try {
-                $me = Invoke-TenantGraphRequest -Url 'https://graph.microsoft.com/v1.0/me?$select=displayName,userPrincipalName' `
-                                               -ClientID $Config.ClientID -TenantID $Config.TenantID
+                $me = Invoke-MSGraphRequest -HttpMethod GET -Url 'https://graph.microsoft.com/v1.0/me?$select=displayName,userPrincipalName'
                 $userLabel = "$($me.displayName) ($($me.userPrincipalName))"
             } catch {}
 
             Set-Connected -UserDisplay $userLabel
             Write-Log "Connected to Intune tenant: $($Config.TenantID)" 'OK'
 
-            # Fetch categories
+            # Fetch categories — Invoke-MSGraphRequest uses stored token, no prompt
             try {
-                $catResp = Get-TenantGraphCollection `
-                    -Url 'https://graph.microsoft.com/v1.0/deviceAppManagement/mobileAppCategories?$select=id,displayName' `
-                    -ClientID $Config.ClientID -TenantID $Config.TenantID
-                $script:availableCategories = @($catResp | ForEach-Object { $_.displayName } | Sort-Object)
+                $catItems = [System.Collections.Generic.List[object]]::new()
+                $nextUrl  = 'https://graph.microsoft.com/v1.0/deviceAppManagement/mobileAppCategories?$select=id,displayName'
+                do {
+                    $resp = Invoke-MSGraphRequest -HttpMethod GET -Url $nextUrl
+                    if ($resp.value) { $catItems.AddRange([object[]]$resp.value) }
+                    $nextUrl = $resp.'@odata.nextLink'
+                } while ($nextUrl)
+                $script:availableCategories = @($catItems | ForEach-Object { $_.displayName } | Sort-Object)
                 Write-Log "Loaded $($script:availableCategories.Count) app categories" 'OK'
             } catch {
                 Write-Log "Could not load categories: $_" 'Warn'
@@ -277,20 +295,24 @@ function Show-MainWindow {
 
             # Fetch assignment filters
             try {
-                $filterResp = Get-TenantGraphCollection `
-                    -Url 'https://graph.microsoft.com/v1.0/deviceManagement/assignmentFilters?$select=id,displayName' `
-                    -ClientID $Config.ClientID -TenantID $Config.TenantID
-                $script:availableFilters = @($filterResp | ForEach-Object { @{ id = $_.id; displayName = $_.displayName } })
+                $filterItems = [System.Collections.Generic.List[object]]::new()
+                $nextUrl     = 'https://graph.microsoft.com/v1.0/deviceManagement/assignmentFilters?$select=id,displayName'
+                do {
+                    $resp = Invoke-MSGraphRequest -HttpMethod GET -Url $nextUrl
+                    if ($resp.value) { $filterItems.AddRange([object[]]$resp.value) }
+                    $nextUrl = $resp.'@odata.nextLink'
+                } while ($nextUrl)
+                $script:availableFilters = @($filterItems | ForEach-Object { @{ id = $_.id; displayName = $_.displayName } })
                 Write-Log "Loaded $($script:availableFilters.Count) assignment filters" 'OK'
             } catch {
-                Write-Log "Could not load filters: $_" 'Warn'
+                Write-Log "Could not load filters (requires DeviceManagementConfiguration.Read.All): $_" 'Warn'
             }
         }
         catch {
             Set-Disconnected
             Write-Log "Connection failed: $_" 'Fail'
             [System.Windows.MessageBox]::Show(
-                "Could not connect to Intune:`n`n$_`n`nCheck your Tenant ID, Client ID, and app registration settings.",
+                "Could not connect to Intune:`n`n$_`n`nCheck your Tenant ID and permissions.`n`nRun Setup-IntuneUploader.ps1 if you haven't already.",
                 'Connection Failed', 'OK', 'Error')
         }
     })
@@ -449,10 +471,15 @@ function Show-MainWindow {
     #region Settings
 
     $btnSettings.Add_Click({
-        $configPath = Join-Path $ToolRoot 'Config\config.json'
+        $configPath  = Join-Path $ToolRoot 'Config\config.json'
+        $authDisplay = if ($Config.AuthMethod -eq 'MicrosoftGraphCLI' -or -not $Config.ClientID) {
+            'Microsoft Graph Command Line Tools (no app registration)'
+        } else {
+            "Custom App Registration ($($Config.ClientID))"
+        }
         $msg = "Current configuration:`n`n" +
+               "Auth method:       $authDisplay`n" +
                "Tenant ID:         $($Config.TenantID)`n" +
-               "Client ID:         $($Config.ClientID)`n" +
                "Output path:       $($Config.DefaultOutputPath)`n" +
                "Docs path:         $($Config.DocumentationPath)`n" +
                "Default template:  $($Config.DefaultTemplate)`n" +
