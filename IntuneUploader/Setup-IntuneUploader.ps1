@@ -121,6 +121,30 @@ foreach ($mod in $requiredModules) {
     }
 }
 
+# Patch IntuneWin32App module for modern OS versions and ARM64 support.
+# The shipped module only supports up to W11_22H2 and x64/x86/All architectures.
+# This patch adds W11_23H2, W11_24H2, W11_25H2 and arm64/x64x86/AllWithARM64.
+Write-Step 'Patching IntuneWin32App module for W11_23H2 / W11_24H2 / W11_25H2 and ARM64 support...'
+$moduleBase = (Get-Module IntuneWin32App -ListAvailable | Sort-Object Version -Descending | Select-Object -First 1).ModuleBase
+$patchTarget = Join-Path $moduleBase 'Public\New-IntuneWin32AppRequirementRule.ps1'
+
+if ((Test-Path $patchTarget) -and ((Get-Content $patchTarget -Raw) -notmatch 'W11_23H2')) {
+    # Dot-source the patch function from the tool's Private folder and apply it
+    $patchScript = Join-Path $ToolRoot 'Private\Repair-IntuneWin32AppModule.ps1'
+    if (Test-Path $patchScript) {
+        . $patchScript
+        $result = Repair-IntuneWin32AppModule
+        if ($result) { Write-OK 'IntuneWin32App module patched.' }
+        else          { Write-Host '[!] Patch already applied or file not found.' -ForegroundColor Yellow }
+    }
+    else {
+        Write-Host '[!] Patch script not found — skipping. The tool Private folder may be incomplete.' -ForegroundColor Yellow
+    }
+}
+else {
+    Write-OK 'IntuneWin32App module already up to date — no patch needed.'
+}
+
 #endregion
 
 #region 3. Download IntuneWinAppUtil.exe
@@ -347,10 +371,31 @@ Write-Host ''
 Write-Host 'A browser window will open for you to sign in.' -ForegroundColor Gray
 Write-Host ''
 
+$requiredScopes = @(
+    'https://graph.microsoft.com/DeviceManagementApps.ReadWrite.All'
+    'https://graph.microsoft.com/DeviceManagementConfiguration.Read.All'
+    'https://graph.microsoft.com/Group.Read.All'
+    'https://graph.microsoft.com/User.Read'
+)
+
+Write-Host '  Requesting permissions:' -ForegroundColor Gray
+$requiredScopes | ForEach-Object { Write-Host "    $_" -ForegroundColor Gray }
+Write-Host ''
+
 try {
     Import-Module IntuneWin32App -Force
-    Connect-MSIntuneGraph -TenantID $tenantId -ClientID $clientId -Interactive -ErrorAction Stop
-    Write-OK 'Authentication successful!'
+    Import-Module MSAL.PS        -Force
+
+    $token = Get-MsalToken -ClientId $clientId -TenantId $tenantId `
+                           -Scopes $requiredScopes -Interactive -ErrorAction Stop
+
+    $Global:AuthenticationHeader = @{
+        'Authorization' = "Bearer $($token.AccessToken)"
+        'Content-Type'  = 'application/json'
+        'ExpiresOn'     = $token.ExpiresOn
+    }
+
+    Write-OK 'Authentication successful! All required permissions consented.'
     Write-Host ''
     Write-Host '  You are now connected to Intune. Run Invoke-IntuneUploader.ps1 to start uploading apps.' -ForegroundColor Green
 }

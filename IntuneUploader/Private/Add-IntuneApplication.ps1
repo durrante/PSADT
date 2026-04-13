@@ -70,38 +70,53 @@ function Add-IntuneApplication {
             New-IntuneWin32AppDetectionRuleMSI @p
         }
         'Registry' {
-            $p = @{
-                KeyPath              = $det.KeyPath
-                DetectionType        = $det.DetectionType
-                Check32BitOn64System = ([bool]$det.Check32BitOn64System)
+            # Module uses parameter-set switches, not a DetectionType string
+            $chk = ([bool]$det.Check32BitOn64System)
+            switch ($det.DetectionType) {
+                { $_ -in 'exists','doesNotExist' } {
+                    $p = @{ Existence = $true; KeyPath = $det.KeyPath; DetectionType = $det.DetectionType; Check32BitOn64System = $chk }
+                    if ($det.ValueName) { $p.ValueName = $det.ValueName }
+                    New-IntuneWin32AppDetectionRuleRegistry @p
+                }
+                'string' {
+                    $p = @{ StringComparison = $true; KeyPath = $det.KeyPath; StringComparisonOperator = ($det.Operator ?? 'equal'); StringComparisonValue = $det.Value; Check32BitOn64System = $chk }
+                    if ($det.ValueName) { $p.ValueName = $det.ValueName }
+                    New-IntuneWin32AppDetectionRuleRegistry @p
+                }
+                'integer' {
+                    $p = @{ IntegerComparison = $true; KeyPath = $det.KeyPath; IntegerComparisonOperator = ($det.Operator ?? 'equal'); IntegerComparisonValue = [string][int]$det.Value; Check32BitOn64System = $chk }
+                    if ($det.ValueName) { $p.ValueName = $det.ValueName }
+                    New-IntuneWin32AppDetectionRuleRegistry @p
+                }
+                'version' {
+                    $p = @{ VersionComparison = $true; KeyPath = $det.KeyPath; VersionComparisonOperator = ($det.Operator ?? 'greaterThanOrEqual'); VersionComparisonValue = $det.Value; Check32BitOn64System = $chk }
+                    if ($det.ValueName) { $p.ValueName = $det.ValueName }
+                    New-IntuneWin32AppDetectionRuleRegistry @p
+                }
+                default { throw "Unknown registry detection type: $($det.DetectionType)" }
             }
-            if ($det.ValueName)  { $p.ValueName = $det.ValueName }
-            if ($det.DetectionType -eq 'string') {
-                $p.StringComparisonOperator = $det.Operator ?? 'equal'
-                $p.StringValue              = $det.Value
-            }
-            elseif ($det.DetectionType -eq 'integer') {
-                $p.IntegerComparisonOperator = $det.Operator ?? 'equal'
-                $p.IntegerValue              = [int]$det.Value
-            }
-            elseif ($det.DetectionType -eq 'version') {
-                $p.VersionComparisonOperator = $det.Operator ?? 'greaterThanOrEqual'
-                $p.VersionValue              = $det.Value
-            }
-            New-IntuneWin32AppDetectionRuleRegistry @p
         }
         'File' {
-            $p = @{
-                Path                 = $det.Path
-                FileOrFolder         = $det.FileOrFolder
-                DetectionType        = $det.DetectionType
-                Check32BitOn64System = ([bool]$det.Check32BitOn64System)
+            # Module uses parameter-set switches, not a DetectionType string
+            $chk = ([bool]$det.Check32BitOn64System)
+            switch ($det.DetectionType) {
+                { $_ -in 'exists','doesNotExist' } {
+                    New-IntuneWin32AppDetectionRuleFile -Existence -Path $det.Path -FileOrFolder $det.FileOrFolder -DetectionType $det.DetectionType -Check32BitOn64System $chk
+                }
+                'version' {
+                    New-IntuneWin32AppDetectionRuleFile -Version -Path $det.Path -FileOrFolder $det.FileOrFolder -Operator ($det.Operator ?? 'greaterThanOrEqual') -VersionValue $det.Value -Check32BitOn64System $chk
+                }
+                'size' {
+                    New-IntuneWin32AppDetectionRuleFile -Size -Path $det.Path -FileOrFolder $det.FileOrFolder -Operator ($det.Operator ?? 'greaterThanOrEqual') -SizeInMBValue ([string][int]$det.Value) -Check32BitOn64System $chk
+                }
+                'dateModified' {
+                    New-IntuneWin32AppDetectionRuleFile -DateModified -Path $det.Path -FileOrFolder $det.FileOrFolder -Operator ($det.Operator ?? 'greaterThanOrEqual') -DateTimeValue ([datetime]$det.Value) -Check32BitOn64System $chk
+                }
+                'dateCreated' {
+                    New-IntuneWin32AppDetectionRuleFile -DateCreated -Path $det.Path -FileOrFolder $det.FileOrFolder -Operator ($det.Operator ?? 'greaterThanOrEqual') -DateTimeValue ([datetime]$det.Value) -Check32BitOn64System $chk
+                }
+                default { throw "Unknown file detection type: $($det.DetectionType)" }
             }
-            if ($det.DetectionType -notin 'exists','doesNotExist') {
-                $p.Operator = $det.Operator ?? 'greaterThanOrEqual'
-                $p.Value    = $det.Value
-            }
-            New-IntuneWin32AppDetectionRuleFile @p
         }
         default { throw "Unknown detection type: $($det.Type)" }
     }
@@ -110,8 +125,8 @@ function Add-IntuneApplication {
     #region Requirement Rules
     Write-Host '  [*] Building requirement rules...' -ForegroundColor Yellow
 
-    $arch  = $AppConfig.Architecture                       ?? (Get-TplVal 'Architecture' 'x64')
-    $minOS = $AppConfig.MinimumSupportedWindowsRelease     ?? (Get-TplVal 'MinimumSupportedWindowsRelease' 'W10_2004')
+    $arch  = $AppConfig.Architecture                   ?? (Get-TplVal 'Architecture' 'x64')
+    $minOS = $AppConfig.MinimumSupportedWindowsRelease ?? (Get-TplVal 'MinimumSupportedWindowsRelease' 'W10_2004')
 
     $requirementRule = New-IntuneWin32AppRequirementRule `
         -Architecture                   $arch `
@@ -140,38 +155,47 @@ function Add-IntuneApplication {
                             -RunAsAccount          'system'
                     }
                     'Registry' {
-                        $p = @{
-                            KeyPath              = $rule.KeyPath
-                            DetectionType        = $rule.DetectionType
-                            Check32BitOn64System = ([bool]$rule.Check32BitOn64System)
+                        # Module uses parameter-set switches, not a DetectionType string
+                        $chk = ([bool]$rule.Check32BitOn64System)
+                        switch ($rule.DetectionType) {
+                            { $_ -in 'exists','doesNotExist' } {
+                                $p = @{ Existence = $true; KeyPath = $rule.KeyPath; DetectionType = $rule.DetectionType; Check32BitOn64System = $chk }
+                                if ($rule.ValueName) { $p.ValueName = $rule.ValueName }
+                                New-IntuneWin32AppRequirementRuleRegistry @p
+                            }
+                            'string' {
+                                $p = @{ StringComparison = $true; KeyPath = $rule.KeyPath; StringComparisonOperator = ($rule.Operator ?? 'equal'); StringComparisonValue = $rule.Value; Check32BitOn64System = $chk }
+                                if ($rule.ValueName) { $p.ValueName = $rule.ValueName }
+                                New-IntuneWin32AppRequirementRuleRegistry @p
+                            }
+                            'integer' {
+                                $p = @{ IntegerComparison = $true; KeyPath = $rule.KeyPath; IntegerComparisonOperator = ($rule.Operator ?? 'equal'); IntegerComparisonValue = [string][int]$rule.Value; Check32BitOn64System = $chk }
+                                if ($rule.ValueName) { $p.ValueName = $rule.ValueName }
+                                New-IntuneWin32AppRequirementRuleRegistry @p
+                            }
+                            'version' {
+                                $p = @{ VersionComparison = $true; KeyPath = $rule.KeyPath; VersionComparisonOperator = ($rule.Operator ?? 'greaterThanOrEqual'); VersionComparisonValue = $rule.Value; Check32BitOn64System = $chk }
+                                if ($rule.ValueName) { $p.ValueName = $rule.ValueName }
+                                New-IntuneWin32AppRequirementRuleRegistry @p
+                            }
+                            default { Write-Warning "Unknown registry requirement type: $($rule.DetectionType)"; $null }
                         }
-                        if ($rule.ValueName) { $p.ValueName = $rule.ValueName }
-                        if ($rule.DetectionType -eq 'string') {
-                            $p.StringComparisonOperator = $rule.Operator ?? 'equal'
-                            $p.StringValue              = $rule.Value
-                        }
-                        elseif ($rule.DetectionType -eq 'integer') {
-                            $p.IntegerComparisonOperator = $rule.Operator ?? 'equal'
-                            $p.IntegerValue              = [int]$rule.Value
-                        }
-                        elseif ($rule.DetectionType -eq 'version') {
-                            $p.VersionComparisonOperator = $rule.Operator ?? 'greaterThanOrEqual'
-                            $p.VersionValue              = $rule.Value
-                        }
-                        New-IntuneWin32AppRequirementRuleRegistry @p
                     }
                     'File' {
-                        $p = @{
-                            Path                 = $rule.Path
-                            FileOrFolder         = $rule.FileOrFolder
-                            DetectionType        = $rule.DetectionType
-                            Check32BitOn64System = ([bool]$rule.Check32BitOn64System)
+                        # Module uses parameter-set switches, not a DetectionType string
+                        $chk = ([bool]$rule.Check32BitOn64System)
+                        switch ($rule.DetectionType) {
+                            { $_ -in 'exists','doesNotExist' } {
+                                New-IntuneWin32AppRequirementRuleFile -Existence -Path $rule.Path -FileOrFolder $rule.FileOrFolder -DetectionType $rule.DetectionType -Check32BitOn64System $chk
+                            }
+                            'version' {
+                                New-IntuneWin32AppRequirementRuleFile -Version -Path $rule.Path -FileOrFolder $rule.FileOrFolder -Operator ($rule.Operator ?? 'greaterThanOrEqual') -VersionValue $rule.Value -Check32BitOn64System $chk
+                            }
+                            'size' {
+                                New-IntuneWin32AppRequirementRuleFile -Size -Path $rule.Path -FileOrFolder $rule.FileOrFolder -Operator ($rule.Operator ?? 'greaterThanOrEqual') -SizeInMBValue ([string][int]$rule.Value) -Check32BitOn64System $chk
+                            }
+                            default { Write-Warning "Unknown file requirement type: $($rule.DetectionType)"; $null }
                         }
-                        if ($rule.DetectionType -notin 'exists','doesNotExist') {
-                            $p.Operator = $rule.Operator ?? 'greaterThanOrEqual'
-                            $p.Value    = $rule.Value
-                        }
-                        New-IntuneWin32AppRequirementRuleFile @p
                     }
                     default { Write-Warning "Unknown requirement rule type: $($rule.Type)"; $null }
                 }
@@ -265,6 +289,9 @@ function Add-IntuneApplication {
     #endregion
 
     #region Assignment
+    # Assignments are made directly via the Graph API rather than through the module's
+    # assignment cmdlets, because those cmdlets hardcode filter fields to null/"none"
+    # and offer no way to pass FilterID/FilterIntent regardless of module version.
     $asg = $AppConfig.Assignment
     if ($asg -and $asg.Type -ne 'None') {
         Write-Host "  [*] Configuring assignment: $($asg.Type)..." -ForegroundColor Yellow
@@ -272,62 +299,64 @@ function Add-IntuneApplication {
         $intent  = $asg.Intent       ?? 'required'
         $notif   = $asg.Notification ?? 'showAll'
 
-        # Build optional filter params (supported in IntuneWin32App 1.4+)
-        $filterParams = @{}
-        if ($asg.FilterID) {
-            $filterParams.FilterID     = $asg.FilterID
-            $filterParams.FilterIntent = $asg.FilterIntent ?? 'include'
-        }
-
-        switch ($asg.Type) {
-            'AllDevices' {
-                Add-IntuneWin32AppAssignmentAllDevices `
-                    -ID           $intuneApp.id `
-                    -Intent       $intent `
-                    -Notification $notif `
-                    @filterParams
-            }
-            'AllUsers' {
-                Add-IntuneWin32AppAssignmentAllUsers `
-                    -ID           $intuneApp.id `
-                    -Intent       $intent `
-                    -Notification $notif `
-                    @filterParams
-            }
-            'Group' {
-                $groupId = $asg.GroupID
-                if (-not $groupId -and $asg.GroupName) {
-                    Write-Host "    Resolving group: '$($asg.GroupName)'..." -ForegroundColor Gray
-                    try {
-                        $res = Invoke-TenantGraphRequest `
-                            -Url "https://graph.microsoft.com/v1.0/groups?`$filter=displayName eq '$($asg.GroupName)'&`$select=id,displayName" `
-                            -ClientID $ClientID -TenantID $TenantID
-                        if ($res.value.Count -eq 1) {
-                            $groupId = $res.value[0].id
-                            Write-Host "    Resolved: $($res.value[0].displayName) ($groupId)" -ForegroundColor Gray
-                        }
-                        else {
-                            Write-Warning "Could not uniquely resolve group '$($asg.GroupName)' — skipping assignment."
-                        }
-                    }
-                    catch { Write-Warning "Group lookup failed: $_" }
-                }
-
-                if ($groupId) {
-                    Add-IntuneWin32AppAssignmentGroup `
-                        -ID           $intuneApp.id `
-                        -Target       'Group' `
-                        -GroupID      $groupId `
-                        -Intent       $intent `
-                        -Notification $notif `
-                        @filterParams
+        # Resolve group ID if only a name was given
+        $groupId = $asg.GroupID
+        if ($asg.Type -eq 'Group' -and -not $groupId -and $asg.GroupName) {
+            Write-Host "    Resolving group: '$($asg.GroupName)'..." -ForegroundColor Gray
+            try {
+                $res = Invoke-TenantGraphRequest `
+                    -Url "https://graph.microsoft.com/v1.0/groups?`$filter=displayName eq '$($asg.GroupName)'&`$select=id,displayName" `
+                    -ClientID $ClientID -TenantID $TenantID
+                if ($res.value.Count -eq 1) {
+                    $groupId = $res.value[0].id
+                    Write-Host "    Resolved: $($res.value[0].displayName) ($groupId)" -ForegroundColor Gray
                 }
                 else {
-                    Write-Warning "No group ID — assignment skipped. Assign manually in Intune."
+                    Write-Warning "Could not uniquely resolve group '$($asg.GroupName)' — skipping assignment."
                 }
             }
+            catch { Write-Warning "Group lookup failed: $_" }
         }
-        Write-Host "  [OK] Assignment configured." -ForegroundColor Green
+
+        if ($asg.Type -eq 'Group' -and -not $groupId) {
+            Write-Warning "No group ID — assignment skipped. Assign manually in Intune."
+        }
+        else {
+            # Build the assignment target
+            $targetOdata = switch ($asg.Type) {
+                'AllDevices' { '#microsoft.graph.allDevicesAssignmentTarget' }
+                'AllUsers'   { '#microsoft.graph.allLicensedUsersAssignmentTarget' }
+                'Group'      { '#microsoft.graph.groupAssignmentTarget' }
+            }
+            $target = [ordered]@{
+                '@odata.type'                                    = $targetOdata
+                'deviceAndAppManagementAssignmentFilterId'       = if ($asg.FilterID)     { $asg.FilterID }                    else { $null }
+                'deviceAndAppManagementAssignmentFilterType'     = if ($asg.FilterID)     { $asg.FilterIntent ?? 'include' }   else { 'none' }
+            }
+            if ($asg.Type -eq 'Group') { $target['groupId'] = $groupId }
+
+            $assignBody = [ordered]@{
+                '@odata.type' = '#microsoft.graph.mobileAppAssignment'
+                'intent'      = $intent
+                'source'      = 'direct'
+                'target'      = $target
+                'settings'    = [ordered]@{
+                    '@odata.type'                  = '#microsoft.graph.win32LobAppAssignmentSettings'
+                    'notifications'                = $notif
+                    'installTimeSettings'          = $null
+                    'restartSettings'              = $null
+                    'deliveryOptimizationPriority' = 'notConfigured'
+                }
+            }
+
+            Invoke-TenantGraphRequest `
+                -Url    "https://graph.microsoft.com/v1.0/deviceAppManagement/mobileApps/$($intuneApp.id)/assignments" `
+                -Method POST `
+                -Body   $assignBody `
+                -ClientID $ClientID -TenantID $TenantID | Out-Null
+
+            Write-Host "  [OK] Assignment configured." -ForegroundColor Green
+        }
     }
     #endregion
 

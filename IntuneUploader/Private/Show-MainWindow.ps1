@@ -30,9 +30,9 @@ function Show-MainWindow {
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     Title="Intune Win32 App Uploader"
-    Width="820" Height="620"
+    Width="1000" Height="720"
     WindowStartupLocation="CenterScreen"
-    MinWidth="600" MinHeight="460">
+    MinWidth="700" MinHeight="520">
 
   <Window.Resources>
     <Style x:Key="TileBtn" TargetType="Button">
@@ -74,15 +74,21 @@ function Show-MainWindow {
     </Grid.RowDefinitions>
 
     <!-- ═══ HEADER ═══ -->
-    <Border Background="#0078D4" Grid.Row="0">
+    <Border Grid.Row="0">
+      <Border.Background>
+        <LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5">
+          <GradientStop Color="#0693E3" Offset="0"/>
+          <GradientStop Color="#9B51E0" Offset="1"/>
+        </LinearGradientBrush>
+      </Border.Background>
       <Grid Margin="20,0">
         <StackPanel VerticalAlignment="Center">
           <TextBlock Text="Intune Win32 App Uploader" FontSize="20" FontWeight="Light" Foreground="White"/>
-          <TextBlock Text="Microsoft Intune application packaging and deployment" FontSize="11"
-                     Foreground="#B3D9F7" Margin="0,1,0,0"/>
+          <TextBlock Text="Modern Workspace Hub — Intune application packaging and deployment" FontSize="11"
+                     Foreground="#D4C5F9" Margin="0,1,0,0"/>
         </StackPanel>
         <Button x:Name="BtnSignOut" Content="Sign Out" HorizontalAlignment="Right"
-                VerticalAlignment="Center" Padding="10,4" Background="#005A9E"
+                VerticalAlignment="Center" Padding="10,4" Background="#2D1B69"
                 Foreground="White" BorderThickness="0" Cursor="Hand"/>
       </Grid>
     </Border>
@@ -94,9 +100,14 @@ function Show-MainWindow {
           <Ellipse x:Name="ConnDot" Width="10" Height="10" Fill="#D32F2F" Margin="0,0,8,0"/>
           <TextBlock x:Name="TxtStatus" Text="Not connected" VerticalAlignment="Center" FontSize="12"/>
         </StackPanel>
-        <Button x:Name="BtnConnect" Content="Connect to Intune" HorizontalAlignment="Right"
-                Padding="10,4" FontSize="12" Background="#0078D4" Foreground="White" BorderThickness="0"
-                Cursor="Hand"/>
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+          <Button x:Name="BtnRefresh" Content="Refresh Data" Visibility="Collapsed"
+                  Padding="10,4" FontSize="12" Background="#5BA3E8" Foreground="White" BorderThickness="0"
+                  Cursor="Hand" Margin="0,0,8,0"/>
+          <Button x:Name="BtnConnect" Content="Connect to Intune"
+                  Padding="10,4" FontSize="12" Background="#4A2B8F" Foreground="White" BorderThickness="0"
+                  Cursor="Hand"/>
+        </StackPanel>
       </Grid>
     </Border>
 
@@ -113,7 +124,7 @@ function Show-MainWindow {
       </Grid.ColumnDefinitions>
 
       <Button x:Name="BtnUploadSingle" Grid.Column="0" Height="72"
-              Background="#0078D4" Foreground="White" Style="{StaticResource TileBtn}">
+              Background="#5BA3E8" Foreground="White" Style="{StaticResource TileBtn}">
         <StackPanel>
           <TextBlock Text="&#xE898;" FontFamily="Segoe MDL2 Assets" FontSize="22" HorizontalAlignment="Center" Margin="0,0,0,4"/>
           <TextBlock Text="Upload App" FontSize="12"/>
@@ -121,7 +132,7 @@ function Show-MainWindow {
       </Button>
 
       <Button x:Name="BtnBulkUpload" Grid.Column="2" Height="72"
-              Background="#107C10" Foreground="White" Style="{StaticResource TileBtn}">
+              Background="#3A2673" Foreground="White" Style="{StaticResource TileBtn}">
         <StackPanel>
           <TextBlock Text="&#xE838;" FontFamily="Segoe MDL2 Assets" FontSize="22" HorizontalAlignment="Center" Margin="0,0,0,4"/>
           <TextBlock Text="Bulk Upload" FontSize="12"/>
@@ -129,7 +140,7 @@ function Show-MainWindow {
       </Button>
 
       <Button x:Name="BtnTemplates" Grid.Column="4" Height="72"
-              Background="#5C2D91" Foreground="White" Style="{StaticResource TileBtn}">
+              Background="#4A2B8F" Foreground="White" Style="{StaticResource TileBtn}">
         <StackPanel>
           <TextBlock Text="&#xE70B;" FontFamily="Segoe MDL2 Assets" FontSize="22" HorizontalAlignment="Center" Margin="0,0,0,4"/>
           <TextBlock Text="Templates" FontSize="12"/>
@@ -137,7 +148,7 @@ function Show-MainWindow {
       </Button>
 
       <Button x:Name="BtnSettings" Grid.Column="6" Height="72"
-              Background="#767676" Foreground="White" Style="{StaticResource TileBtn}">
+              Background="#2D1B69" Foreground="White" Style="{StaticResource TileBtn}">
         <StackPanel>
           <TextBlock Text="&#xE713;" FontFamily="Segoe MDL2 Assets" FontSize="22" HorizontalAlignment="Center" Margin="0,0,0,4"/>
           <TextBlock Text="Settings" FontSize="12"/>
@@ -196,6 +207,7 @@ function Show-MainWindow {
     $connDot        = Find 'ConnDot'
     $txtStatus      = Find 'TxtStatus'
     $btnConnect     = Find 'BtnConnect'
+    $btnRefresh     = Find 'BtnRefresh'
     $btnSignOut     = Find 'BtnSignOut'
     $btnUploadSingle = Find 'BtnUploadSingle'
     $btnBulkUpload  = Find 'BtnBulkUpload'
@@ -230,17 +242,61 @@ function Show-MainWindow {
 
     function Set-Connected {
         param([string]$UserDisplay = '')
-        $connDot.Fill     = [System.Windows.Media.Brushes]::Green
-        $txtStatus.Text   = if ($UserDisplay) { "Connected as $UserDisplay" } else { 'Connected' }
-        $txtFooter.Text   = 'Connected to Intune'
-        $script:connected = $true
+        $connDot.Fill              = [System.Windows.Media.Brushes]::Green
+        $txtStatus.Text            = if ($UserDisplay) { "Connected as $UserDisplay" } else { 'Connected' }
+        $txtFooter.Text            = 'Connected to Intune'
+        $script:connected          = $true
+        $btnRefresh.Visibility     = [System.Windows.Visibility]::Visible
     }
 
     function Set-Disconnected {
-        $connDot.Fill     = [System.Windows.Media.Brushes]::Red
-        $txtStatus.Text   = 'Not connected'
-        $txtFooter.Text   = 'Not connected — click Connect to sign in'
-        $script:connected = $false
+        $connDot.Fill              = [System.Windows.Media.Brushes]::Red
+        $txtStatus.Text            = 'Not connected'
+        $txtFooter.Text            = 'Not connected — click Connect to sign in'
+        $script:connected          = $false
+        $btnRefresh.Visibility     = [System.Windows.Visibility]::Collapsed
+    }
+
+    # Fetch categories and filters — shared by connect and the Refresh button
+    function Invoke-RefreshTenantData {
+        try {
+            $catResp = Get-TenantGraphCollection -Url 'https://graph.microsoft.com/v1.0/deviceAppManagement/mobileAppCategories?$select=id,displayName'
+            $script:availableCategories = @($catResp | ForEach-Object { $_.displayName } | Sort-Object)
+            Write-Log "Loaded $($script:availableCategories.Count) app categories" 'OK'
+        } catch {
+            Write-Log "Could not load categories: $_" 'Warn'
+        }
+
+        try {
+            # Assignment filters are beta-only — v1.0 returns 'segment not found'.
+            # Fetch platform and assignmentFilterManagementType so we can restrict to
+            # Windows 10 and later / Managed Devices only (matching what Intune shows
+            # when assigning Win32 apps to device groups).
+            $filterUrl  = 'https://graph.microsoft.com/beta/deviceManagement/assignmentFilters' +
+                          '?$select=id,displayName,platform,assignmentFilterManagementType'
+            $filterResp = Get-TenantGraphCollection -Url $filterUrl
+
+            $script:availableFilters = @(
+                $filterResp |
+                Where-Object {
+                    $_.platform                       -eq 'windows10AndLater' -and
+                    $_.assignmentFilterManagementType -eq 'devices'
+                } |
+                ForEach-Object { @{ id = $_.id; displayName = $_.displayName } }
+            )
+
+            $total    = @($filterResp).Count
+            $count    = $script:availableFilters.Count
+            $skipped  = $total - $count
+            $skipNote = if ($skipped -gt 0) { " ($skipped non-Windows/managed-apps filters hidden)" } else { '' }
+            Write-Log "Loaded $count Managed Device / Windows 10+ filter$(if ($count -ne 1) {'s'})$skipNote" 'OK'
+        } catch {
+            if ($_ -match '403|Forbidden') {
+                Write-Log "Assignment filters not loaded — missing DeviceManagementConfiguration.Read.All permission." 'Warn'
+            } else {
+                Write-Log "Could not load filters: $_" 'Warn'
+            }
+        }
     }
 
     #endregion
@@ -251,62 +307,40 @@ function Show-MainWindow {
         $txtFooter.Text = 'Connecting...'
         try {
             Import-Module IntuneWin32App -Force -ErrorAction Stop
+            Import-Module MSAL.PS        -Force -ErrorAction Stop
 
-            # Determine effective ClientID:
-            # Microsoft Graph CLI (built-in public client — no app registration needed)
-            # or Custom App Registration stored in config
+            # Determine effective ClientID
             $effectiveClientID = if ($Config.AuthMethod -eq 'MicrosoftGraphCLI' -or -not $Config.ClientID) {
                 '14d82eec-204b-4c2f-b7e8-296a70dab67e'   # Microsoft Graph Command Line Tools
             } else {
                 $Config.ClientID
             }
 
-            # Single browser login — opens exactly once
-            Connect-MSIntuneGraph -TenantID $Config.TenantID -ClientID $effectiveClientID -Interactive -ErrorAction Stop
+            # Use the module's own Connect-MSIntuneGraph so that $Global:AuthenticationHeader
+            # is set in exactly the format Add-IntuneWin32App expects (ExpiresOn as UTCDateTime,
+            # Authorization via CreateAuthorizationHeader()).  Bypassing it via Get-MsalToken
+            # produces a subtly wrong ExpiresOn type that makes the module's token-lifetime
+            # check always treat the token as expired, silently aborting the upload.
+            Connect-MSIntuneGraph -TenantID $Config.TenantID -ClientID $effectiveClientID `
+                                  -Interactive -ErrorAction Stop | Out-Null
 
-            # Store for Invoke-TenantGraphRequest MSAL silent fallback
-            $global:IntuneUploaderClientID = $effectiveClientID
-            $global:IntuneUploaderTenantID = $Config.TenantID
+            # Store for Invoke-TenantGraphRequest fallback methods
+            $global:IntuneUploaderClientID  = $effectiveClientID
+            $global:IntuneUploaderTenantID  = $Config.TenantID
+            $global:IntuneUploaderLoginHint = ''
 
-            # Signed-in user — Invoke-MSGraphRequest uses token stored by Connect-MSIntuneGraph, no browser
+            # Signed-in user display name
             $userLabel = ''
             try {
-                $me = Invoke-MSGraphRequest -HttpMethod GET -Url 'https://graph.microsoft.com/v1.0/me?$select=displayName,userPrincipalName'
+                $me = Invoke-TenantGraphRequest -Url 'https://graph.microsoft.com/v1.0/me?$select=displayName,userPrincipalName'
                 $userLabel = "$($me.displayName) ($($me.userPrincipalName))"
+                $global:IntuneUploaderLoginHint = $me.userPrincipalName
             } catch {}
 
             Set-Connected -UserDisplay $userLabel
             Write-Log "Connected to Intune tenant: $($Config.TenantID)" 'OK'
 
-            # Fetch categories — Invoke-MSGraphRequest uses stored token, no prompt
-            try {
-                $catItems = [System.Collections.Generic.List[object]]::new()
-                $nextUrl  = 'https://graph.microsoft.com/v1.0/deviceAppManagement/mobileAppCategories?$select=id,displayName'
-                do {
-                    $resp = Invoke-MSGraphRequest -HttpMethod GET -Url $nextUrl
-                    if ($resp.value) { $catItems.AddRange([object[]]$resp.value) }
-                    $nextUrl = $resp.'@odata.nextLink'
-                } while ($nextUrl)
-                $script:availableCategories = @($catItems | ForEach-Object { $_.displayName } | Sort-Object)
-                Write-Log "Loaded $($script:availableCategories.Count) app categories" 'OK'
-            } catch {
-                Write-Log "Could not load categories: $_" 'Warn'
-            }
-
-            # Fetch assignment filters
-            try {
-                $filterItems = [System.Collections.Generic.List[object]]::new()
-                $nextUrl     = 'https://graph.microsoft.com/v1.0/deviceManagement/assignmentFilters?$select=id,displayName'
-                do {
-                    $resp = Invoke-MSGraphRequest -HttpMethod GET -Url $nextUrl
-                    if ($resp.value) { $filterItems.AddRange([object[]]$resp.value) }
-                    $nextUrl = $resp.'@odata.nextLink'
-                } while ($nextUrl)
-                $script:availableFilters = @($filterItems | ForEach-Object { @{ id = $_.id; displayName = $_.displayName } })
-                Write-Log "Loaded $($script:availableFilters.Count) assignment filters" 'OK'
-            } catch {
-                Write-Log "Could not load filters (requires DeviceManagementConfiguration.Read.All): $_" 'Warn'
-            }
+            Invoke-RefreshTenantData
         }
         catch {
             Set-Disconnected
@@ -317,8 +351,21 @@ function Show-MainWindow {
         }
     })
 
+    $btnRefresh.Add_Click({
+        $txtFooter.Text = 'Refreshing...'
+        Write-Log 'Refreshing categories and filters...' 'Info'
+        Invoke-RefreshTenantData
+        $txtFooter.Text = 'Connected to Intune'
+    })
+
     $btnSignOut.Add_Click({
+        $Global:AuthenticationHeader    = $null
+        $global:IntuneUploaderClientID  = $null
+        $global:IntuneUploaderTenantID  = $null
+        $global:IntuneUploaderLoginHint = $null
         try { Disconnect-MSIntuneGraph -ErrorAction SilentlyContinue } catch {}
+        $script:availableCategories = @()
+        $script:availableFilters    = @()
         Set-Disconnected
         Write-Log 'Signed out.' 'Info'
     })
@@ -346,14 +393,35 @@ function Show-MainWindow {
             return
         }
 
-        Write-Log "Starting: $($appConfig.DisplayName) $($appConfig.Version)" 'Info'
-        $txtFooter.Text = "Processing: $($appConfig.DisplayName)..."
+        # Log everything the user selected so they can see what's about to happen
+        $asgDesc = switch ($appConfig.Assignment.Type) {
+            'AllDevices' { 'All Devices' }
+            'AllUsers'   { 'All Users'   }
+            'Group'      { "Group: $($appConfig.Assignment.GroupName)" }
+            default      { 'None (manual)' }
+        }
+        $catDesc = if ($appConfig.Categories -and $appConfig.Categories.Count) {
+            $appConfig.Categories -join ', '
+        } else { 'None' }
+        $filterDesc = if ($appConfig.Assignment.FilterID) { $appConfig.Assignment.FilterIntent } else { 'None' }
+
+        Write-Log "─── Upload: $($appConfig.DisplayName) $($appConfig.Version) ───" 'Info'
+        Write-Log "  Source:     $($appConfig.SourceFolder)" 'Info'
+        Write-Log "  Detection:  $($appConfig.Detection.Type)" 'Info'
+        Write-Log "  Assignment: $asgDesc" 'Info'
+        Write-Log "  Filter:     $filterDesc" 'Info'
+        Write-Log "  Categories: $catDesc" 'Info'
+        Write-Log "  Template:   $($appConfig.Template)" 'Info'
+
+        $txtFooter.Text = "Packaging: $($appConfig.DisplayName)..."
+        Write-Log "Packaging .intunewin..." 'Info'
 
         try {
             $result = Invoke-ProcessApp -AppConfig $appConfig -Config $Config -TemplateFolder $TemplateFolder
 
             if ($result.Success) {
-                Write-Log "$($appConfig.DisplayName) — uploaded successfully (ID: $($result.App.id))" 'OK'
+                Write-Log "Uploading to Intune... done." 'OK'
+                Write-Log "$($appConfig.DisplayName) — complete  (ID: $($result.App.id))" 'OK'
                 Write-Log "  Documentation: $($result.DocPath)" 'Info'
                 $txtFooter.Text = "Done: $($appConfig.DisplayName)"
                 [System.Windows.MessageBox]::Show(
@@ -361,7 +429,7 @@ function Show-MainWindow {
                     'Upload Complete', 'OK', 'Information')
             }
             else {
-                Write-Log "$($appConfig.DisplayName) — FAILED: $($result.Error)" 'Fail'
+                Write-Log "FAILED: $($result.Error)" 'Fail'
                 $txtFooter.Text = "Failed: $($appConfig.DisplayName)"
                 [System.Windows.MessageBox]::Show(
                     "Upload failed for: $($appConfig.DisplayName)`n`n$($result.Error)",
@@ -384,60 +452,18 @@ function Show-MainWindow {
             return
         }
 
-        $dlg = New-Object System.Windows.Forms.OpenFileDialog
-        $dlg.Title  = 'Select bulk upload JSON file'
-        $dlg.Filter = 'JSON files (*.json)|*.json|All files (*.*)|*.*'
+        Write-Log 'Opening Bulk Upload Manager...' 'Info'
+        $txtFooter.Text = 'Bulk Upload Manager open'
 
-        if ($dlg.ShowDialog() -ne 'OK') { return }
+        Show-BulkManager `
+            -Config              $Config `
+            -TemplateFolder      $TemplateFolder `
+            -ToolRoot            $ToolRoot `
+            -AvailableCategories $script:availableCategories `
+            -AvailableFilters    $script:availableFilters
 
-        try {
-            $apps = Get-Content $dlg.FileName -Raw | ConvertFrom-Json
-        }
-        catch {
-            [System.Windows.MessageBox]::Show("Could not read JSON file:`n$_", 'Error', 'OK', 'Error')
-            return
-        }
-
-        if ($apps -isnot [array]) { $apps = @($apps) }
-
-        $confirmed = [System.Windows.MessageBox]::Show(
-            "Found $($apps.Count) application(s) in the bulk file.`n`nProceed with packaging and uploading all?",
-            'Bulk Upload', 'YesNo', 'Question')
-
-        if ($confirmed -ne 'Yes') { return }
-
-        Write-Log "=== Bulk upload started: $($apps.Count) apps ===" 'Info'
-        $ok = 0; $fail = 0; $idx = 0
-
-        foreach ($appJson in $apps) {
-            $idx++
-            $appConfig = ConvertFrom-AppJson -AppJson $appJson
-
-            if (-not $appConfig) {
-                Write-Log "[$idx/$($apps.Count)] SKIP — missing required fields" 'Warn'
-                $fail++
-                continue
-            }
-
-            $txtFooter.Text = "[$idx/$($apps.Count)] $($appConfig.DisplayName)..."
-            Write-Log "[$idx/$($apps.Count)] $($appConfig.DisplayName) $($appConfig.Version)" 'Info'
-
-            $result = Invoke-ProcessApp -AppConfig $appConfig -Config $Config -TemplateFolder $TemplateFolder
-
-            if ($result.Success) {
-                Write-Log "  OK — $($appConfig.DisplayName) (ID: $($result.App.id))" 'OK'
-                $ok++
-            }
-            else {
-                Write-Log "  FAILED — $($result.Error)" 'Fail'
-                $fail++
-            }
-        }
-
-        $summary = "Bulk upload complete: $ok succeeded, $fail failed"
-        Write-Log "=== $summary ===" 'Info'
-        $txtFooter.Text = $summary
-        [System.Windows.MessageBox]::Show($summary, 'Bulk Upload Complete', 'OK', 'Information')
+        $txtFooter.Text = 'Ready'
+        Write-Log 'Bulk Upload Manager closed.' 'Info'
     })
 
     #endregion

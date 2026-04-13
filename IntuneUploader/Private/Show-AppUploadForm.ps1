@@ -27,7 +27,14 @@ function Show-AppUploadForm {
 
         # Pre-loaded from Intune by Show-MainWindow (can be empty arrays)
         [string[]]$AvailableCategories = @(),
-        [object[]]$AvailableFilters    = @()
+        [object[]]$AvailableFilters    = @(),
+
+        # When opening from the Bulk Manager to edit an existing row, pass the AppConfig
+        # hashtable here and the form will pre-fill all fields.
+        [hashtable]$PrePopulate        = @{},
+
+        # Label for the primary action button (changes context: "Package and Upload" vs "Add to Queue")
+        [string]$SubmitLabel           = 'Package and Upload'
     )
 
     Add-Type -AssemblyName PresentationFramework,PresentationCore,WindowsBase,System.Windows.Forms | Out-Null
@@ -65,7 +72,7 @@ function Show-AppUploadForm {
     </Style>
     <Style x:Key="SectionHeader" TargetType="TextBlock">
       <Setter Property="FontWeight" Value="SemiBold"/>
-      <Setter Property="Foreground" Value="#0078D4"/>
+      <Setter Property="Foreground" Value="#4A2B8F"/>
       <Setter Property="FontSize" Value="12"/>
       <Setter Property="Margin" Value="0,10,0,4"/>
     </Style>
@@ -73,9 +80,9 @@ function Show-AppUploadForm {
       <Setter Property="Margin" Value="0,3"/>
     </Style>
     <Style x:Key="RulePanel" TargetType="Border">
-      <Setter Property="BorderBrush" Value="#0078D4"/>
+      <Setter Property="BorderBrush" Value="#4A2B8F"/>
       <Setter Property="BorderThickness" Value="1"/>
-      <Setter Property="Background" Value="#EFF6FC"/>
+      <Setter Property="Background" Value="#F0EBF9"/>
       <Setter Property="CornerRadius" Value="3"/>
       <Setter Property="Padding" Value="10"/>
       <Setter Property="Margin" Value="0,6,0,4"/>
@@ -93,7 +100,13 @@ function Show-AppUploadForm {
     </Grid.RowDefinitions>
 
     <!-- HEADER -->
-    <Border Background="#0078D4" Grid.Row="0">
+    <Border Grid.Row="0">
+      <Border.Background>
+        <LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5">
+          <GradientStop Color="#0693E3" Offset="0"/>
+          <GradientStop Color="#9B51E0" Offset="1"/>
+        </LinearGradientBrush>
+      </Border.Background>
       <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="16,0">
         <TextBlock Text="Upload Application" FontSize="18" FontWeight="Light" Foreground="White" VerticalAlignment="Center"/>
       </StackPanel>
@@ -115,11 +128,11 @@ function Show-AppUploadForm {
 
     <!-- PSADT BANNER -->
     <Border x:Name="PsadtBanner" Grid.Row="2" Margin="10,6,10,0"
-            Background="#E6F3FB" BorderBrush="#0078D4" BorderThickness="1"
+            Background="#EDE7F6" BorderBrush="#4A2B8F" BorderThickness="1"
             CornerRadius="3" Padding="10,7" Visibility="Collapsed">
       <StackPanel Orientation="Horizontal">
-        <TextBlock Text="&#x2714;" Foreground="#0078D4" FontSize="14" Margin="0,0,8,0" VerticalAlignment="Center"/>
-        <TextBlock x:Name="TxtPsadtInfo" FontWeight="SemiBold" Foreground="#0078D4" VerticalAlignment="Center"
+        <TextBlock Text="&#x2714;" Foreground="#4A2B8F" FontSize="14" Margin="0,0,8,0" VerticalAlignment="Center"/>
+        <TextBlock x:Name="TxtPsadtInfo" FontWeight="SemiBold" Foreground="#4A2B8F" VerticalAlignment="Center"
                    Text="PSADT v4 detected — metadata auto-filled."/>
       </StackPanel>
     </Border>
@@ -497,7 +510,6 @@ function Show-AppUploadForm {
                 <ComboBoxItem Content="W11_22H2"/>
                 <ComboBoxItem Content="W11_23H2"/>
                 <ComboBoxItem Content="W11_24H2"/>
-                <ComboBoxItem Content="W11_25H2"/>
               </ComboBox>
             </Grid>
 
@@ -674,7 +686,7 @@ function Show-AppUploadForm {
                 <!-- Confirm / Cancel -->
                 <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
                   <Button x:Name="BtnReqAddConfirm" Content="Add to List"
-                          Background="#0078D4" Foreground="White"
+                          Background="#4A2B8F" Foreground="White"
                           Padding="12,5" Margin="0,0,8,0" MinWidth="0"/>
                   <Button x:Name="BtnReqAddCancel" Content="Cancel" Padding="12,5" MinWidth="0"/>
                 </StackPanel>
@@ -795,8 +807,15 @@ function Show-AppUploadForm {
       <Grid>
         <TextBlock x:Name="TxtValidation" Foreground="Red" VerticalAlignment="Center" TextWrapping="Wrap"/>
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-          <Button x:Name="BtnUpload" Content="Package and Upload" Background="#0078D4" Foreground="White"
-                  FontWeight="SemiBold" Padding="16,6" MinWidth="0" Margin="0,0,8,0"/>
+          <Button x:Name="BtnUpload" Content="Package and Upload" Foreground="White"
+                  FontWeight="SemiBold" Padding="16,6" MinWidth="0" Margin="0,0,8,0">
+            <Button.Background>
+              <LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5">
+                <GradientStop Color="#0693E3" Offset="0"/>
+                <GradientStop Color="#9B51E0" Offset="1"/>
+              </LinearGradientBrush>
+            </Button.Background>
+          </Button>
           <Button x:Name="BtnCancel" Content="Cancel"/>
         </StackPanel>
       </Grid>
@@ -992,14 +1011,16 @@ function Show-AppUploadForm {
     }
 
     function Get-ArchValue {
-        $x64  = $chkArchX64.IsChecked
-        $x86  = $chkArchX86.IsChecked
-        $arm  = $chkArchArm64.IsChecked
-        if ($arm -and ($x64 -or $x86)) { return 'AllWithARM64' }
-        if ($arm)          { return 'arm64' }
-        if ($x64 -and $x86) { return 'x64x86' }
-        if ($x64)          { return 'x64' }
-        if ($x86)          { return 'x86' }
+        $x64  = [bool]$chkArchX64.IsChecked
+        $x86  = [bool]$chkArchX86.IsChecked
+        $arm  = [bool]$chkArchArm64.IsChecked
+        if ($x64 -and $x86 -and $arm) { return 'AllWithARM64' }
+        if ($x64 -and $arm)            { return 'x64arm64' }
+        if ($x86 -and $arm)            { return 'AllWithARM64' }  # no x86+arm64 only option
+        if ($arm)                      { return 'arm64' }
+        if ($x64 -and $x86)            { return 'x64x86' }
+        if ($x64)                      { return 'x64' }
+        if ($x86)                      { return 'x86' }
         return 'x64'
     }
 
@@ -1225,11 +1246,18 @@ function Show-AppUploadForm {
 
     $btnReqAddCancel.Add_Click({ $panelAddReqRule.Visibility = 'Collapsed' })
 
-    # Assignment
-    $rdoAsgGroup.Add_Checked({      $panelGroupSearch.Visibility = 'Visible' })
-    $rdoAsgAllDevices.Add_Checked({ $panelGroupSearch.Visibility = 'Collapsed' })
-    $rdoAsgAllUsers.Add_Checked({   $panelGroupSearch.Visibility = 'Collapsed' })
-    $rdoAsgNone.Add_Checked({       $panelGroupSearch.Visibility = 'Collapsed' })
+    # Assignment — clear group search result whenever switching away from Group
+    $rdoAsgGroup.Add_Checked({ $panelGroupSearch.Visibility = 'Visible' })
+
+    $clearGroup = {
+        $panelGroupSearch.Visibility   = 'Collapsed'
+        $txtGroupResult.Text           = ''
+        $txtGroupResult.Visibility     = 'Collapsed'
+        $script:resolvedGroupId        = $null
+    }
+    $rdoAsgAllDevices.Add_Checked($clearGroup)
+    $rdoAsgAllUsers.Add_Checked($clearGroup)
+    $rdoAsgNone.Add_Checked($clearGroup)
 
     # Enable filter intent when a filter is selected
     $cmbAssignFilter.Add_SelectionChanged({
@@ -1250,8 +1278,7 @@ function Show-AppUploadForm {
             $clientId = if ($Config) { $Config.ClientID } else { '' }
             $tenantId = if ($Config) { $Config.TenantID } else { '' }
 
-            $encoded = [System.Uri]::EscapeDataString($name)
-            $url     = "https://graph.microsoft.com/v1.0/groups?`$filter=displayName eq '$name'&`$select=id,displayName"
+            $url = "https://graph.microsoft.com/v1.0/groups?`$filter=displayName eq '$([System.Uri]::EscapeDataString($name))'&`$select=id,displayName"
             $res     = Invoke-TenantGraphRequest -Url $url -ClientID $clientId -TenantID $tenantId
 
             if ($res.value.Count -eq 1) {
@@ -1401,6 +1428,162 @@ function Show-AppUploadForm {
     })
 
     $btnCancel.Add_Click({ $window.DialogResult = $false; $window.Close() })
+    #endregion
+
+    #region Pre-populate (edit / bulk-manager mode)
+    # Runs AFTER all event handlers are registered so that setting radio buttons and
+    # checkboxes correctly fires the panel-switch handlers.
+    if ($PrePopulate -and $PrePopulate.Count -gt 0) {
+        $p = $PrePopulate
+
+        # Button label + window title
+        $btnUpload.Content = $SubmitLabel
+        if ($p.DisplayName) { $window.Title = "Edit Application — $($p.DisplayName)" }
+
+        # ── Simple text fields (set before source folder so PSADT won't overwrite them) ──
+        if ($p.DisplayName)    { $txtDisplayName.Text   = $p.DisplayName    }
+        if ($p.Version)        { $txtVersion.Text       = $p.Version        }
+        if ($p.Publisher)      { $txtPublisher.Text     = $p.Publisher      }
+        if ($p.Owner)          { $txtOwner.Text         = $p.Owner          }
+        if ($p.Description)    { $txtDescription.Text   = $p.Description    }
+        if ($p.Notes)          { $txtNotes.Text         = $p.Notes          }
+        if ($p.InternalNote)   { $txtInternalNote.Text  = $p.InternalNote   }
+        if ($p.InformationURL) { $txtInfoURL.Text       = $p.InformationURL }
+        if ($p.PrivacyURL)     { $txtPrivacyURL.Text    = $p.PrivacyURL     }
+
+        # ── Source folder (triggers PSADT detection + locks commands if applicable) ──
+        if ($p.SourceFolder -and (Test-Path $p.SourceFolder)) {
+            $txtSource.Text = $p.SourceFolder
+            Update-PSADTState -Folder $p.SourceFolder
+        }
+
+        # ── Commands (only if not locked by PSADT) ──
+        if (-not $script:isPSADT) {
+            if ($p.InstallCommandLine)   { $txtInstallCmd.Text   = $p.InstallCommandLine   }
+            if ($p.UninstallCommandLine) { $txtUninstallCmd.Text = $p.UninstallCommandLine }
+        }
+        $expMap  = @{ system=0; user=1 }
+        $rstMap  = @{ suppress=0; allow=1; basedOnReturnCode=2; force=3 }
+        if ($p.InstallExperience -and $expMap.ContainsKey($p.InstallExperience)) { $cmbInstallExp.SelectedIndex = $expMap[$p.InstallExperience] }
+        if ($p.RestartBehavior   -and $rstMap.ContainsKey($p.RestartBehavior))   { $cmbRestart.SelectedIndex   = $rstMap[$p.RestartBehavior]   }
+
+        # ── Template / Logo / Output ──
+        if ($p.Template) {
+            $tIdx = $cmbTemplate.Items.IndexOf($p.Template)
+            if ($tIdx -ge 0) { $cmbTemplate.SelectedIndex = $tIdx }
+        }
+        if ($p.LogoPath)     { $txtLogo.Text   = $p.LogoPath     }
+        if ($p.OutputFolder) { $txtOutput.Text = $p.OutputFolder }
+
+        # ── Detection ──
+        if ($p.Detection) {
+            $d       = $p.Detection
+            $opMap   = @{ equal=0; notEqual=1; greaterThan=2; greaterThanOrEqual=3; lessThan=4; lessThanOrEqual=5 }
+            switch ($d.Type) {
+                'Script' {
+                    $rdoDetectScript.IsChecked    = $true
+                    if ($d.ScriptPath) { $txtDetectScript.Text = $d.ScriptPath }
+                    $chkDetectSignature.IsChecked = [bool]$d.EnforceSignatureCheck
+                    $chkDetect32Bit.IsChecked     = [bool]$d.RunAs32Bit
+                }
+                'Registry' {
+                    $rdoDetectRegistry.IsChecked = $true
+                    $txtRegKey.Text              = $d.KeyPath
+                    $txtRegValue.Text            = $d.ValueName
+                    $rTypeMap = @{ exists=0; doesNotExist=1; string=2; integer=3; version=4; hexadecimal=5 }
+                    if ($d.DetectionType -and $rTypeMap.ContainsKey($d.DetectionType)) { $cmbRegType.SelectedIndex     = $rTypeMap[$d.DetectionType] }
+                    if ($d.Operator      -and $opMap.ContainsKey($d.Operator))         { $cmbRegOperator.SelectedIndex = $opMap[$d.Operator]          }
+                    if ($d.Value)        { $txtRegCompValue.Text = $d.Value }
+                    $chkReg32Bit.IsChecked = [bool]$d.Check32BitOn64System
+                }
+                'MSI' {
+                    $rdoDetectMSI.IsChecked = $true
+                    $txtMsiCode.Text        = $d.ProductCode
+                    if ($d.ProductVersionOperator) {
+                        $chkMsiVersion.IsChecked = $true
+                        if ($opMap.ContainsKey($d.ProductVersionOperator)) { $cmbMsiOperator.SelectedIndex = $opMap[$d.ProductVersionOperator] }
+                        $txtMsiVersion.Text = $d.ProductVersion
+                    }
+                }
+                'File' {
+                    $rdoDetectFile.IsChecked = $true
+                    $txtFilePath.Text        = $d.Path
+                    $txtFileName.Text        = $d.FileOrFolder
+                    $fTypeMap = @{ exists=0; doesNotExist=1; modifiedDate=2; createdDate=3; version=4; sizeInMBGreaterThan=5 }
+                    if ($d.DetectionType -and $fTypeMap.ContainsKey($d.DetectionType)) { $cmbFileType.SelectedIndex     = $fTypeMap[$d.DetectionType] }
+                    if ($d.Operator      -and $opMap.ContainsKey($d.Operator))         { $cmbFileOperator.SelectedIndex = $opMap[$d.Operator]          }
+                    if ($d.Value) { $txtFileValue.Text = $d.Value }
+                    $chkFile32Bit.IsChecked = [bool]$d.Check32BitOn64System
+                }
+            }
+        }
+
+        # ── Architecture ──
+        if ($p.Architecture) {
+            $a = $p.Architecture
+            $chkArchX64.IsChecked   = $a -in @('x64',  'x64x86', 'x64arm64', 'AllWithARM64')
+            $chkArchX86.IsChecked   = $a -in @('x86',  'x64x86', 'AllWithARM64')
+            $chkArchArm64.IsChecked = $a -in @('arm64','x64arm64','AllWithARM64')
+            Update-ArchLabel
+        }
+
+        # ── Minimum OS ──
+        if ($p.MinimumSupportedWindowsRelease) {
+            $osOrder = @('W10_1607','W10_1703','W10_1709','W10_1803','W10_1809','W10_1903','W10_1909',
+                         'W10_2004','W10_20H2','W10_21H1','W10_21H2','W10_22H2',
+                         'W11_21H2','W11_22H2','W11_23H2','W11_24H2')
+            $oIdx = $osOrder.IndexOf($p.MinimumSupportedWindowsRelease)
+            if ($oIdx -ge 0) { $cmbMinOS.SelectedIndex = $oIdx }
+        }
+
+        # ── Additional requirement rules ──
+        if ($p.AdditionalRequirementRules) {
+            foreach ($rule in $p.AdditionalRequirementRules) { $script:requirementRules.Add($rule) }
+            Update-ReqRulesListBox
+        }
+
+        # ── Assignment ──
+        if ($p.Assignment) {
+            $a = $p.Assignment
+            switch ($a.Type) {
+                'AllDevices' { $rdoAsgAllDevices.IsChecked = $true }
+                'AllUsers'   { $rdoAsgAllUsers.IsChecked   = $true }
+                'Group' {
+                    $rdoAsgGroup.IsChecked = $true
+                    $txtGroupName.Text     = $a.GroupName
+                    if ($a.GroupID) {
+                        $script:resolvedGroupId    = $a.GroupID
+                        $txtGroupResult.Text       = "Pre-loaded: $($a.GroupName) ($($a.GroupID))"
+                        $txtGroupResult.Visibility = 'Visible'
+                        $txtGroupResult.Foreground = [System.Windows.Media.Brushes]::Green
+                    }
+                }
+                'None' { $rdoAsgNone.IsChecked = $true }
+            }
+            $intentMap = @{ required=0; available=1; uninstall=2 }
+            $notifMap  = @{ showAll=0; showReboot=1; hideAll=2 }
+            if ($a.Intent       -and $intentMap.ContainsKey($a.Intent))       { $cmbIntent.SelectedIndex       = $intentMap[$a.Intent]       }
+            if ($a.Notification -and $notifMap.ContainsKey($a.Notification))  { $cmbNotification.SelectedIndex = $notifMap[$a.Notification]  }
+            if ($a.FilterID) {
+                foreach ($item in $cmbAssignFilter.Items) {
+                    if ($item -is [System.Windows.Controls.ComboBoxItem] -and $item.Tag -eq $a.FilterID) {
+                        $cmbAssignFilter.SelectedItem = $item; break
+                    }
+                }
+                $fMap = @{ include=0; exclude=1 }
+                if ($a.FilterIntent -and $fMap.ContainsKey($a.FilterIntent)) { $cmbFilterIntent.SelectedIndex = $fMap[$a.FilterIntent] }
+            }
+        }
+
+        # ── Categories ──
+        if ($p.Categories) {
+            foreach ($child in $panelCategories.Children) {
+                if ($child -is [System.Windows.Controls.CheckBox]) {
+                    $child.IsChecked = ($p.Categories -contains $child.Content)
+                }
+            }
+        }
+    }
     #endregion
 
     $window.ShowDialog() | Out-Null

@@ -364,7 +364,7 @@ function Invoke-AppWizard {
         'W10_1607','W10_1703','W10_1709','W10_1803','W10_1809',
         'W10_1903','W10_1909','W10_2004','W10_20H2',
         'W10_21H1','W10_21H2','W10_22H2',
-        'W11_21H2','W11_22H2','W11_23H2','W11_24H2'
+        'W11_21H2','W11_22H2','W11_23H2','W11_24H2,W11_25H2'
     )
     $osDefault  = $Defaults.Requirements?.MinimumOS ?? ($templateData?.MinimumSupportedWindowsRelease ?? 'W10_2004')
     Write-Host "  Min Windows: $($osReleases -join ', ')" -ForegroundColor Gray

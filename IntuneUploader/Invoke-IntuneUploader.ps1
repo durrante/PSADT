@@ -30,12 +30,14 @@ $ToolRoot = $PSScriptRoot
 
 #region Load private functions
 $privateScripts = @(
+    'Private\Repair-IntuneWin32AppModule.ps1'
     'Private\Invoke-TenantGraphRequest.ps1'
     'Private\Get-PSADTMetadata.ps1'
     'Private\New-IntunePackage.ps1'
     'Private\Add-IntuneApplication.ps1'
     'Private\New-AppDocumentation.ps1'
     'Private\Show-AppUploadForm.ps1'
+    'Private\Show-BulkManager.ps1'
     'Private\Show-MainWindow.ps1'
 )
 
@@ -111,6 +113,22 @@ function Invoke-ProcessApp {
             -SetupFile            $AppConfig.SetupFile `
             -OutputFolder         $outputFolder `
             -IntuneWinAppUtilPath $Config.IntuneWinAppUtilPath
+
+        # Rename to <AppName>_<Version>_<Type>.intunewin for easy identification
+        $safeName    = ($AppConfig.DisplayName -replace '[^\w]', '_') -replace '_+', '_'
+        $safeVersion = if ($AppConfig.Version)  { ($AppConfig.Version -replace '[^\w\.\-]', '_') } else { 'NoVersion' }
+        $appType     = if ($AppConfig.IsPSADT)  { 'PSADT' } else { 'Win32' }
+        $renamedFile = Join-Path $outputFolder "${safeName}_${safeVersion}_${appType}.intunewin"
+
+        if (Test-Path $renamedFile) { Remove-Item $renamedFile -Force }
+        Rename-Item -Path $intunewinPath -NewName (Split-Path $renamedFile -Leaf)
+        $intunewinPath = $renamedFile
+        Write-Host "  [OK] Package renamed: $(Split-Path $intunewinPath -Leaf)" -ForegroundColor Green
+
+        # Patch the inner ZIP so the Intune portal shows the correct filename instead of "IntunePackage.intunewin"
+        $innerName = Split-Path $intunewinPath -Leaf
+        Update-IntunewinPackageName -IntunewinPath $intunewinPath -DesiredName $innerName
+        Write-Host "  [OK] Inner content renamed: $innerName" -ForegroundColor Green
 
         # 2. Upload + Assign
         $intuneApp = Add-IntuneApplication `
@@ -233,6 +251,15 @@ if ($BulkFile) {
 
     Write-Host "`nDone: $ok succeeded, $fail failed`n" -ForegroundColor $(if ($fail -gt 0) { 'Yellow' } else { 'Green' })
     exit 0
+}
+#endregion
+
+#region Apply module patches (runs before any Import-Module IntuneWin32App)
+$patched = Repair-IntuneWin32AppModule
+if ($patched) {
+    Write-Host '[OK] IntuneWin32App module patched for W11_23H2 / W11_24H2 + ARM64 support.' -ForegroundColor Green
+    # Force unload so the connect button's Import-Module -Force picks up the patched file
+    Remove-Module IntuneWin32App -Force -ErrorAction SilentlyContinue
 }
 #endregion
 

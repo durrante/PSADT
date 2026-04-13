@@ -1,15 +1,18 @@
 <#
 .SYNOPSIS
-    Microsoft Graph API helper that uses the IntuneWin32App module's stored auth token.
+    Microsoft Graph API helper with layered auth fallback — never prompts interactively.
 
 .DESCRIPTION
-    Tries Invoke-MSGraphRequest (IntuneWin32App module) first — this uses the token
-    cached by Connect-MSIntuneGraph with no additional prompts.
+    Attempts Graph calls in order, stopping at the first that succeeds:
 
-    Falls back to MSAL.PS silent token only if the module call fails. NEVER prompts
-    interactively — if unauthenticated, throws a clear "not connected" error.
+      1. Invoke-MSGraphRequest (if exported by IntuneWin32App)
+      2. $Global:AuthenticationHeader set by Connect-MSIntuneGraph + Invoke-RestMethod
+         (most IntuneWin32App versions store the bearer token in global scope)
+      3. $script:AuthenticationHeader via module scope invocation
+         (older versions that store it as script-scope)
+      4. Get-MsalToken -Silent with login hint + Invoke-RestMethod
 
-    Call Connect-MSIntuneGraph once (in the main window) before using this function.
+    If all fail, throws with the actual last error. Never opens a browser.
 #>
 
 function Invoke-TenantGraphRequest {
@@ -23,53 +26,88 @@ function Invoke-TenantGraphRequest {
 
         [object]$Body = $null,
 
-        # Used for MSAL silent fallback only (never for interactive login)
         [string]$ClientID = '',
         [string]$TenantID = ''
     )
 
-    $bodyJson = if ($Body) { $Body | ConvertTo-Json -Depth 10 -Compress } else { $null }
+    $bodyJson  = if ($Body) { $Body | ConvertTo-Json -Depth 10 -Compress } else { $null }
+    $lastError = $null
 
     # Resolve ClientID/TenantID from globals if not passed
     if (-not $ClientID -and $global:IntuneUploaderClientID) { $ClientID = $global:IntuneUploaderClientID }
     if (-not $TenantID -and $global:IntuneUploaderTenantID) { $TenantID = $global:IntuneUploaderTenantID }
 
-    # Method 1 — IntuneWin32App module's Invoke-MSGraphRequest
-    # Uses the token stored by Connect-MSIntuneGraph — no browser, no prompt
-    $fn = Get-Command 'Invoke-MSGraphRequest' -ErrorAction SilentlyContinue
-    if ($fn) {
-        try {
-            $params = @{ HttpMethod = $Method; Url = $Url }
-            if ($bodyJson) { $params.Body = $bodyJson }
-            return Invoke-MSGraphRequest @params
+    # Helper: make a REST call with a given header hashtable
+    function Invoke-WithHeader {
+        param([hashtable]$Headers)
+        $h = @{ 'Content-Type' = 'application/json' }
+        foreach ($kv in $Headers.GetEnumerator()) {
+            if ($kv.Key -ne 'ExpiresOn') { $h[$kv.Key] = $kv.Value }
         }
+        $p = @{ Uri = $Url; Method = $Method; Headers = $h }
+        if ($bodyJson) { $p.Body = $bodyJson }
+        Invoke-RestMethod @p
+    }
+
+    # ── Method 1 ── Invoke-MSGraphRequest directly (if exported by this module version)
+    if (Get-Command 'Invoke-MSGraphRequest' -ErrorAction SilentlyContinue) {
+        try {
+            $p = @{ HttpMethod = $Method; Url = $Url }
+            if ($bodyJson) { $p.Body = $bodyJson }
+            return Invoke-MSGraphRequest @p
+        }
+        catch { $lastError = $_; Write-Verbose "Method 1 (Invoke-MSGraphRequest): $_" }
+    }
+
+    # ── Method 2 ── $Global:AuthenticationHeader (most IntuneWin32App versions)
+    # Connect-MSIntuneGraph stores the bearer token in global scope as $Global:AuthenticationHeader.
+    if ($Global:AuthenticationHeader -and $Global:AuthenticationHeader['Authorization']) {
+        try { return Invoke-WithHeader -Headers $Global:AuthenticationHeader }
         catch {
-            Write-Verbose "Invoke-MSGraphRequest failed: $_ — trying MSAL silent fallback"
+            $lastError = $_
+            # 4xx errors are permission/resource problems — a different auth method won't fix them
+            if ($_ -match '40[13467]|Forbidden|Unauthorized|Bad Request|Not Found') { throw }
+            Write-Verbose "Method 2 (Global:AuthenticationHeader): $_"
         }
     }
 
-    # Method 2 — MSAL.PS silent token (uses cached refresh token, no browser)
+    # ── Method 3 ── $script:AuthenticationHeader via module scope (some older versions)
+    $intuneModule = Get-Module 'IntuneWin32App' -ErrorAction SilentlyContinue
+    if ($intuneModule) {
+        try {
+            $scriptHeader = & $intuneModule { $script:AuthenticationHeader }
+            if ($scriptHeader -and $scriptHeader['Authorization']) {
+                return Invoke-WithHeader -Headers $scriptHeader
+            }
+        }
+        catch {
+            $lastError = $_
+            if ($_ -match '40[13467]|Forbidden|Unauthorized|Bad Request|Not Found') { throw }
+            Write-Verbose "Method 3 (script:AuthenticationHeader): $_"
+        }
+    }
+
+    # ── Method 4 ── MSAL.PS silent token with login hint
     if ($ClientID -and $TenantID) {
         try {
             Import-Module MSAL.PS -ErrorAction Stop
-            $token = Get-MsalToken -ClientId $ClientID -TenantId $TenantID `
-                                   -Scopes 'https://graph.microsoft.com/.default' `
-                                   -Silent -ErrorAction Stop
-            $headers = @{
-                Authorization  = "Bearer $($token.AccessToken)"
-                'Content-Type' = 'application/json'
+            $msalParams = @{
+                ClientId = $ClientID
+                TenantId = $TenantID
+                Scopes   = 'https://graph.microsoft.com/.default'
+                Silent   = $true
             }
+            if ($global:IntuneUploaderLoginHint) { $msalParams.LoginHint = $global:IntuneUploaderLoginHint }
+            $token     = Get-MsalToken @msalParams -ErrorAction Stop
+            $headers   = @{ Authorization = "Bearer $($token.AccessToken)"; 'Content-Type' = 'application/json' }
             $irmParams = @{ Uri = $Url; Method = $Method; Headers = $headers }
             if ($bodyJson) { $irmParams.Body = $bodyJson }
             return Invoke-RestMethod @irmParams
         }
-        catch {
-            Write-Verbose "MSAL silent token failed: $_"
-        }
+        catch { $lastError = $_; Write-Verbose "Method 4 (MSAL silent): $_" }
     }
 
-    # Both methods failed — never prompt interactively
-    throw "Not connected to Intune. Click 'Connect to Intune' in the main window and sign in first."
+    throw "Graph API call failed. $lastError"
 }
 
 # Convenience wrapper: GET calls that auto-page through @odata.nextLink
