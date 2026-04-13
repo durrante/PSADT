@@ -257,7 +257,7 @@ if ($BulkFile) {
 #region Apply module patches (runs before any Import-Module IntuneWin32App)
 $patched = Repair-IntuneWin32AppModule
 if ($patched) {
-    Write-Host '[OK] IntuneWin32App module patched for W11_23H2 / W11_24H2 + ARM64 support.' -ForegroundColor Green
+    Write-Host '[OK] IntuneWin32App module patched (W11_23H2/W11_24H2 + ARM64 support; ExpiresOn DateTime fix).' -ForegroundColor Green
     # Force unload so the connect button's Import-Module -Force picks up the patched file
     Remove-Module IntuneWin32App -Force -ErrorAction SilentlyContinue
 }

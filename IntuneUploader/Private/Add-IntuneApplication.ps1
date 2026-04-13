@@ -244,6 +244,20 @@ function Add-IntuneApplication {
     #region Upload
     Write-Host '  [*] Uploading to Intune...' -ForegroundColor Yellow
 
+    # The IntuneWin32App module performs date arithmetic on $Global:AuthenticationHeader.ExpiresOn
+    # using DateTime.Parse(string, InvariantCulture). On non-US locales (e.g. en-GB) the value
+    # may have been coerced to a locale-format string ('13/04/2026 16:25:40') which InvariantCulture
+    # cannot parse (month=13 invalid). Ensure it is always a proper UTC DateTime before the call.
+    if ($Global:AuthenticationHeader) {
+        $eo = $Global:AuthenticationHeader.ExpiresOn
+        if ($eo -is [string]) {
+            try   { $Global:AuthenticationHeader.ExpiresOn = [datetime]::Parse($eo, [System.Globalization.CultureInfo]::CurrentCulture) }
+            catch { $Global:AuthenticationHeader.ExpiresOn = [datetime]::UtcNow.AddHours(1) }
+        } elseif ($eo -is [System.DateTimeOffset]) {
+            $Global:AuthenticationHeader.ExpiresOn = $eo.UtcDateTime
+        }
+    }
+
     $installExp  = $AppConfig.InstallExperience ?? (Get-TplVal 'InstallExperience' 'system')
     $restartBeh  = $AppConfig.RestartBehavior   ?? (Get-TplVal 'RestartBehavior'   'suppress')
     $maxTime     = Get-TplVal 'MaximumInstallationTimeInMinutes' 60

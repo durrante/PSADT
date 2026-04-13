@@ -127,9 +127,11 @@ function Show-BulkManager {
     <Border Grid.Row="1" Background="#F8F8F8" BorderBrush="#E0E0E0" BorderThickness="0,0,0,1" Padding="10,7">
       <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
 
-        <Button x:Name="BtnAddRow"   Content="+ Add Row"        Style="{StaticResource PrimaryBtn}" Background="#4A2B8F"/>
-        <Button x:Name="BtnBrowse"   Content="Browse Source..."  Style="{StaticResource ToolBtn}"/>
-        <Button x:Name="BtnFullSetup" Content="Full Setup..."    Style="{StaticResource ToolBtn}"/>
+        <Button x:Name="BtnAddRow"    Content="+ Add Row"         Style="{StaticResource PrimaryBtn}" Background="#4A2B8F"/>
+        <Button x:Name="BtnBrowse"    Content="Browse Source..."   Style="{StaticResource ToolBtn}"/>
+        <Button x:Name="BtnBrowseLogo" Content="Browse Logo..."    Style="{StaticResource ToolBtn}"/>
+        <Button x:Name="BtnAssignment" Content="Set Assignment ▾"  Style="{StaticResource ToolBtn}"/>
+        <Button x:Name="BtnFullSetup" Content="Detection / Config..." Style="{StaticResource ToolBtn}"/>
 
         <Separator Width="1" Background="#DDD" Margin="4,2,10,2"/>
 
@@ -201,101 +203,108 @@ function Show-BulkManager {
 
       <DataGrid.Columns>
 
-        <!-- 0 — Source Folder: display=leaf, edit=full path -->
-        <DataGridTemplateColumn Header="Source Folder" Width="175" MinWidth="100" SortMemberPath="SourceLeaf">
-          <DataGridTemplateColumn.CellTemplate>
-            <DataTemplate>
-              <TextBlock VerticalAlignment="Center" Padding="6,0"
-                         TextTrimming="CharacterEllipsis"
-                         ToolTip="{Binding [SourceFolder]}">
-                <TextBlock.Style>
-                  <Style TargetType="TextBlock">
-                    <Setter Property="Text" Value="{Binding [SourceLeaf]}"/>
-                    <Style.Triggers>
-                      <DataTrigger Binding="{Binding [SourceLeaf]}" Value="">
-                        <Setter Property="Text"       Value="Click to set path…"/>
-                        <Setter Property="Foreground"  Value="#BBB"/>
-                        <Setter Property="FontStyle"   Value="Italic"/>
-                      </DataTrigger>
-                    </Style.Triggers>
-                  </Style>
-                </TextBlock.Style>
-              </TextBlock>
-            </DataTemplate>
-          </DataGridTemplateColumn.CellTemplate>
-          <DataGridTemplateColumn.CellEditingTemplate>
-            <DataTemplate>
-              <TextBox x:Name="TbSourceFolder"
-                       Text="{Binding [SourceFolder], UpdateSourceTrigger=LostFocus}"
-                       VerticalAlignment="Center" Padding="5,0"
-                       BorderThickness="0" Background="Transparent"/>
-            </DataTemplate>
-          </DataGridTemplateColumn.CellEditingTemplate>
-        </DataGridTemplateColumn>
+        <!-- 0 — Source Folder (full path, editable) -->
+        <DataGridTextColumn Header="Source Folder" Binding="{Binding [SourceFolder]}"
+                            Width="195" MinWidth="100" SortMemberPath="SourceFolder">
+          <DataGridTextColumn.ElementStyle>
+            <Style TargetType="TextBlock">
+              <Setter Property="VerticalAlignment" Value="Center"/>
+              <Setter Property="Padding"           Value="6,0"/>
+              <Setter Property="TextTrimming"      Value="CharacterEllipsis"/>
+              <Setter Property="ToolTip"           Value="{Binding [SourceFolder]}"/>
+            </Style>
+          </DataGridTextColumn.ElementStyle>
+          <DataGridTextColumn.EditingElementStyle>
+            <Style TargetType="TextBox">
+              <Setter Property="VerticalAlignment" Value="Center"/>
+              <Setter Property="Padding"           Value="5,0"/>
+              <Setter Property="BorderThickness"   Value="0"/>
+              <Setter Property="Background"        Value="Transparent"/>
+            </Style>
+          </DataGridTextColumn.EditingElementStyle>
+        </DataGridTextColumn>
 
         <!-- 1 — Display Name -->
-        <DataGridTemplateColumn Header="Display Name" Width="165" MinWidth="80" SortMemberPath="DisplayName">
-          <DataGridTemplateColumn.CellTemplate>
-            <DataTemplate>
-              <TextBlock VerticalAlignment="Center" Padding="6,0" TextTrimming="CharacterEllipsis">
-                <TextBlock.Style>
-                  <Style TargetType="TextBlock">
-                    <Setter Property="Text" Value="{Binding [DisplayName]}"/>
-                    <Style.Triggers>
-                      <DataTrigger Binding="{Binding [DisplayName]}" Value="">
-                        <Setter Property="Text"      Value="auto-filled…"/>
-                        <Setter Property="Foreground" Value="#BBB"/>
-                        <Setter Property="FontStyle"  Value="Italic"/>
-                      </DataTrigger>
-                    </Style.Triggers>
-                  </Style>
-                </TextBlock.Style>
-              </TextBlock>
-            </DataTemplate>
-          </DataGridTemplateColumn.CellTemplate>
-          <DataGridTemplateColumn.CellEditingTemplate>
-            <DataTemplate>
-              <TextBox Text="{Binding [DisplayName], UpdateSourceTrigger=LostFocus}"
-                       VerticalAlignment="Center" Padding="5,0"
-                       BorderThickness="0" Background="Transparent"/>
-            </DataTemplate>
-          </DataGridTemplateColumn.CellEditingTemplate>
-        </DataGridTemplateColumn>
+        <DataGridTextColumn Header="Display Name" Binding="{Binding [DisplayName]}"
+                            Width="155" MinWidth="80" SortMemberPath="DisplayName">
+          <DataGridTextColumn.ElementStyle>
+            <Style TargetType="TextBlock">
+              <Setter Property="VerticalAlignment" Value="Center"/>
+              <Setter Property="Padding"           Value="6,0"/>
+              <Setter Property="TextTrimming"      Value="CharacterEllipsis"/>
+            </Style>
+          </DataGridTextColumn.ElementStyle>
+          <DataGridTextColumn.EditingElementStyle>
+            <Style TargetType="TextBox">
+              <Setter Property="VerticalAlignment" Value="Center"/>
+              <Setter Property="Padding"           Value="5,0"/>
+              <Setter Property="BorderThickness"   Value="0"/>
+              <Setter Property="Background"        Value="Transparent"/>
+            </Style>
+          </DataGridTextColumn.EditingElementStyle>
+        </DataGridTextColumn>
 
         <!-- 2 — Version -->
-        <DataGridTemplateColumn Header="Version" Width="80" SortMemberPath="Version">
-          <DataGridTemplateColumn.CellTemplate>
-            <DataTemplate>
-              <TextBlock Text="{Binding [Version]}" VerticalAlignment="Center" Padding="6,0"/>
-            </DataTemplate>
-          </DataGridTemplateColumn.CellTemplate>
-          <DataGridTemplateColumn.CellEditingTemplate>
-            <DataTemplate>
-              <TextBox Text="{Binding [Version], UpdateSourceTrigger=LostFocus}"
-                       VerticalAlignment="Center" Padding="5,0"
-                       BorderThickness="0" Background="Transparent"/>
-            </DataTemplate>
-          </DataGridTemplateColumn.CellEditingTemplate>
-        </DataGridTemplateColumn>
+        <DataGridTextColumn Header="Version" Binding="{Binding [Version]}"
+                            Width="80" SortMemberPath="Version">
+          <DataGridTextColumn.ElementStyle>
+            <Style TargetType="TextBlock">
+              <Setter Property="VerticalAlignment" Value="Center"/>
+              <Setter Property="Padding"           Value="6,0"/>
+            </Style>
+          </DataGridTextColumn.ElementStyle>
+          <DataGridTextColumn.EditingElementStyle>
+            <Style TargetType="TextBox">
+              <Setter Property="VerticalAlignment" Value="Center"/>
+              <Setter Property="Padding"           Value="5,0"/>
+              <Setter Property="BorderThickness"   Value="0"/>
+              <Setter Property="Background"        Value="Transparent"/>
+            </Style>
+          </DataGridTextColumn.EditingElementStyle>
+        </DataGridTextColumn>
 
         <!-- 3 — Publisher -->
-        <DataGridTemplateColumn Header="Publisher" Width="115" SortMemberPath="Publisher">
-          <DataGridTemplateColumn.CellTemplate>
-            <DataTemplate>
-              <TextBlock Text="{Binding [Publisher]}" VerticalAlignment="Center" Padding="6,0"
-                         TextTrimming="CharacterEllipsis"/>
-            </DataTemplate>
-          </DataGridTemplateColumn.CellTemplate>
-          <DataGridTemplateColumn.CellEditingTemplate>
-            <DataTemplate>
-              <TextBox Text="{Binding [Publisher], UpdateSourceTrigger=LostFocus}"
-                       VerticalAlignment="Center" Padding="5,0"
-                       BorderThickness="0" Background="Transparent"/>
-            </DataTemplate>
-          </DataGridTemplateColumn.CellEditingTemplate>
-        </DataGridTemplateColumn>
+        <DataGridTextColumn Header="Publisher" Binding="{Binding [Publisher]}"
+                            Width="110" SortMemberPath="Publisher">
+          <DataGridTextColumn.ElementStyle>
+            <Style TargetType="TextBlock">
+              <Setter Property="VerticalAlignment" Value="Center"/>
+              <Setter Property="Padding"           Value="6,0"/>
+              <Setter Property="TextTrimming"      Value="CharacterEllipsis"/>
+            </Style>
+          </DataGridTextColumn.ElementStyle>
+          <DataGridTextColumn.EditingElementStyle>
+            <Style TargetType="TextBox">
+              <Setter Property="VerticalAlignment" Value="Center"/>
+              <Setter Property="Padding"           Value="5,0"/>
+              <Setter Property="BorderThickness"   Value="0"/>
+              <Setter Property="Background"        Value="Transparent"/>
+            </Style>
+          </DataGridTextColumn.EditingElementStyle>
+        </DataGridTextColumn>
 
-        <!-- 4 — Template (ComboBox) -->
+        <!-- 4 — Logo Path -->
+        <DataGridTextColumn Header="Logo Path" Binding="{Binding [LogoPath]}"
+                            Width="115" MinWidth="60" SortMemberPath="LogoPath">
+          <DataGridTextColumn.ElementStyle>
+            <Style TargetType="TextBlock">
+              <Setter Property="VerticalAlignment" Value="Center"/>
+              <Setter Property="Padding"           Value="6,0"/>
+              <Setter Property="TextTrimming"      Value="CharacterEllipsis"/>
+              <Setter Property="ToolTip"           Value="{Binding [LogoPath]}"/>
+            </Style>
+          </DataGridTextColumn.ElementStyle>
+          <DataGridTextColumn.EditingElementStyle>
+            <Style TargetType="TextBox">
+              <Setter Property="VerticalAlignment" Value="Center"/>
+              <Setter Property="Padding"           Value="5,0"/>
+              <Setter Property="BorderThickness"   Value="0"/>
+              <Setter Property="Background"        Value="Transparent"/>
+            </Style>
+          </DataGridTextColumn.EditingElementStyle>
+        </DataGridTextColumn>
+
+        <!-- 5 — Template (ComboBox) -->
         <DataGridTemplateColumn Header="Template" Width="130" MinWidth="80" SortMemberPath="Template">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
@@ -313,7 +322,7 @@ function Show-BulkManager {
           </DataGridTemplateColumn.CellEditingTemplate>
         </DataGridTemplateColumn>
 
-        <!-- 5 — Detection (read-only summary) -->
+        <!-- 6 — Detection (read-only summary) -->
         <DataGridTemplateColumn Header="Detection" Width="105" IsReadOnly="True" SortMemberPath="Detection">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
@@ -339,7 +348,7 @@ function Show-BulkManager {
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
 
-        <!-- 6 — Assignment (read-only summary) -->
+        <!-- 7 — Assignment (read-only summary) -->
         <DataGridTemplateColumn Header="Assignment" Width="*" MinWidth="120" IsReadOnly="True" SortMemberPath="Assignment">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
@@ -349,7 +358,7 @@ function Show-BulkManager {
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
 
-        <!-- 7 — Status (read-only, colour-coded) -->
+        <!-- 8 — Status (read-only, colour-coded) -->
         <DataGridTemplateColumn Header="Status" Width="85" IsReadOnly="True" SortMemberPath="Status">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
@@ -400,6 +409,8 @@ function Show-BulkManager {
     $bulkGrid        = Find 'BulkGrid'
     $btnAddRow       = Find 'BtnAddRow'
     $btnBrowse       = Find 'BtnBrowse'
+    $btnBrowseLogo   = Find 'BtnBrowseLogo'
+    $btnAssignment   = Find 'BtnAssignment'
     $btnFullSetup    = Find 'BtnFullSetup'
     $btnRemove       = Find 'BtnRemove'
     $btnClear        = Find 'BtnClear'
@@ -416,8 +427,8 @@ function Show-BulkManager {
     $script:bmRows  = [System.Collections.Generic.List[hashtable]]::new()
     $script:bmTable = New-Object System.Data.DataTable
 
-    foreach ($col in @('_Id','SourceFolder','SourceLeaf','DisplayName','Version',
-                        'Publisher','Template','Detection','Assignment','Status')) {
+    foreach ($col in @('_Id','SourceFolder','DisplayName','Version',
+                        'Publisher','LogoPath','Template','Detection','Assignment','Status')) {
         $script:bmTable.Columns.Add($col, [string]) | Out-Null
     }
     $bulkGrid.ItemsSource = $script:bmTable.DefaultView
@@ -443,17 +454,17 @@ function Show-BulkManager {
 
     function Get-AssignmentSummary {
         param($Asg)
-        if (-not $Asg) { return '—' }
+        if (-not $Asg) { return 'Not set' }
         $a = if ($Asg -is [hashtable]) { $Asg } else {
             $h = @{}; $Asg.PSObject.Properties | ForEach-Object { $h[$_.Name] = $_.Value }; $h
         }
-        $intent = if ($a.Intent) { " / $($a.Intent)" } else { '' }
+        $intent = if ($a.Intent) { " — $($a.Intent)" } else { '' }
         switch ($a.Type) {
             'AllDevices' { "All Devices$intent" }
             'AllUsers'   { "All Users$intent" }
             'Group'      { "Group: $($a.GroupName)$intent" }
             'None'       { 'None' }
-            default      { $a.Type ?? '—' }
+            default      { $a.Type ?? 'Not set' }
         }
     }
 
@@ -499,6 +510,21 @@ function Show-BulkManager {
         if ($dr) { $dr['Status'] = $Status }
     }
 
+    # Walk the WPF visual tree to find a child of a given type
+    # Needed for DataGridTemplateColumn where $e.EditingElement is a ContentPresenter wrapper
+    function Find-VisualChild {
+        param($Parent, [Type]$TargetType)
+        if (-not $Parent) { return $null }
+        $count = [System.Windows.Media.VisualTreeHelper]::GetChildrenCount($Parent)
+        for ($i = 0; $i -lt $count; $i++) {
+            $child = [System.Windows.Media.VisualTreeHelper]::GetChild($Parent, $i)
+            if ($child -is $TargetType) { return $child }
+            $found = Find-VisualChild -Parent $child -TargetType $TargetType
+            if ($found) { return $found }
+        }
+        return $null
+    }
+
     # Called after a source folder is set — scans PSADT metadata and updates the row in-place
     function Invoke-SourceScan {
         param([string]$Id, [string]$Path)
@@ -509,12 +535,8 @@ function Show-BulkManager {
         $dr = Find-DataRow -Id $Id
         $row = $script:bmRows[$idx]
 
-        # Always update the leaf display regardless of metadata
-        $leaf = if ($Path) { Split-Path $Path -Leaf } else { '' }
-        if ($dr) {
-            $dr['SourceFolder'] = $Path
-            $dr['SourceLeaf']   = $leaf
-        }
+        # Always update the source folder display
+        if ($dr) { $dr['SourceFolder'] = $Path }
         $row.SourceFolder = $Path
 
         if (-not $Path -or -not (Test-Path $Path -PathType Container)) {
@@ -543,10 +565,29 @@ function Show-BulkManager {
             }
         }
 
+        # Auto-detect logo if not already set
+        if (-not $row.LogoPath) {
+            $logoFound = $null
+            foreach ($candidate in @(
+                (Join-Path $Path 'Files\AppLogo.png'),
+                (Join-Path $Path 'Files\logo.png'),
+                (Join-Path $Path 'AppLogo.png'),
+                (Join-Path $Path 'logo.png')
+            )) {
+                if (Test-Path $candidate) { $logoFound = $candidate; break }
+            }
+            if (-not $logoFound) {
+                $pngFiles = @(Get-ChildItem -Path (Join-Path $Path 'Files') -Filter '*.png' -ErrorAction SilentlyContinue)
+                if ($pngFiles.Count -gt 0) { $logoFound = $pngFiles[0].FullName }
+            }
+            if ($logoFound) { $row.LogoPath = $logoFound }
+        }
+
         if ($dr) {
             $dr['DisplayName'] = $row.DisplayName  ?? ''
             $dr['Version']     = $row.Version      ?? ''
             $dr['Publisher']   = $row.Publisher    ?? ''
+            $dr['LogoPath']    = $row.LogoPath     ?? ''
             $dr['Template']    = $row.Template     ?? ''
         }
 
@@ -601,18 +642,21 @@ function Show-BulkManager {
         $defTpl  = $Config.DefaultTemplate ?? 'PSADT-Default'
 
         $newRow = $Config.Clone()
-        if (-not $newRow._id)     { $newRow._id     = $id }
-        if (-not $newRow._status) { $newRow._status = 'Pending' }
-        if (-not $newRow.Template){ $newRow.Template = $defTpl }
+        if (-not $newRow._id)         { $newRow._id       = $id }
+        if (-not $newRow._status)     { $newRow._status   = 'Pending' }
+        if (-not $newRow.Template)    { $newRow.Template  = $defTpl }
+        if (-not $newRow.Assignment)  {
+            $newRow.Assignment = @{ Type = 'AllDevices'; Intent = 'required'; Notification = 'showAll' }
+        }
         $script:bmRows.Add($newRow)
 
         $dr = $script:bmTable.NewRow()
-        $dr['_Id']        = $newRow._id
+        $dr['_Id']          = $newRow._id
         $dr['SourceFolder'] = $newRow.SourceFolder ?? ''
-        $dr['SourceLeaf']   = if ($newRow.SourceFolder) { Split-Path $newRow.SourceFolder -Leaf } else { '' }
         $dr['DisplayName']  = $newRow.DisplayName  ?? ''
         $dr['Version']      = $newRow.Version      ?? ''
         $dr['Publisher']    = $newRow.Publisher    ?? ''
+        $dr['LogoPath']     = $newRow.LogoPath     ?? ''
         $dr['Template']     = $newRow.Template     ?? ''
         $dr['Detection']    = Get-DetectionSummary  -Det $newRow.Detection
         $dr['Assignment']   = Get-AssignmentSummary -Asg $newRow.Assignment
@@ -629,14 +673,15 @@ function Show-BulkManager {
     #region Grid events
     # ─────────────────────────────────────────────────────────────────────────
 
-    # Set ComboBox ItemsSource when Template column enters edit mode
+    # Set ComboBox ItemsSource when Template column enters edit mode.
+    # $e.EditingElement for a DataGridTemplateColumn is a ContentPresenter wrapper,
+    # so we walk the visual tree to reach the actual ComboBox.
     $bulkGrid.Add_PreparingCellForEdit({
         param($s, $e)
         if (($e.Column.Header -as [string]) -eq 'Template') {
-            $cmb = $e.EditingElement
-            if ($cmb -is [System.Windows.Controls.ComboBox]) {
-                $cmb.ItemsSource = $script:templateNames
-            }
+            $cmb = Find-VisualChild -Parent $e.EditingElement `
+                                    -TargetType ([System.Windows.Controls.ComboBox])
+            if ($cmb) { $cmb.ItemsSource = $script:templateNames }
         }
     })
 
@@ -675,8 +720,14 @@ function Show-BulkManager {
                 $tb = $e.EditingElement -as [System.Windows.Controls.TextBox]
                 if ($tb) { $script:bmRows[$idx].Publisher = $tb.Text.Trim() }
             }
+            'Logo Path' {
+                $tb = $e.EditingElement -as [System.Windows.Controls.TextBox]
+                if ($tb) { $script:bmRows[$idx].LogoPath = $tb.Text.Trim() }
+            }
             'Template' {
-                $cmb = $e.EditingElement -as [System.Windows.Controls.ComboBox]
+                # EditingElement is a ContentPresenter for TemplateColumn — walk to ComboBox
+                $cmb = Find-VisualChild -Parent $e.EditingElement `
+                                        -TargetType ([System.Windows.Controls.ComboBox])
                 if ($cmb -and $cmb.SelectedItem) {
                     $newTpl = $cmb.SelectedItem -as [string]
                     $script:bmRows[$idx].Template = $newTpl
@@ -735,6 +786,94 @@ function Show-BulkManager {
         Invoke-SourceScan -Id $id -Path $newPath
     })
 
+    # ── Browse Logo (image file picker for selected row) ─────────────────────
+    $btnBrowseLogo.Add_Click({
+        $sel = $bulkGrid.SelectedItem
+        if (-not $sel) {
+            [System.Windows.MessageBox]::Show(
+                'Select a row first, then click Browse Logo.',
+                'Browse Logo', 'OK', 'Information')
+            return
+        }
+
+        $dlg = New-Object System.Windows.Forms.OpenFileDialog
+        $dlg.Title  = 'Select logo image'
+        $dlg.Filter = 'Image files (*.png;*.jpg;*.jpeg;*.ico)|*.png;*.jpg;*.jpeg;*.ico|All files (*.*)|*.*'
+        $currentLogo = $sel['LogoPath'] -as [string]
+        if ($currentLogo -and (Test-Path $currentLogo)) {
+            $dlg.InitialDirectory = [System.IO.Path]::GetDirectoryName($currentLogo)
+        }
+        if ($dlg.ShowDialog() -ne [System.Windows.Forms.DialogResult]::OK) { return }
+
+        $newLogo = $dlg.FileName
+        $rowId   = $sel['_Id'] -as [string]
+        $rowIdx  = Find-RowById -Id $rowId
+        if ($rowIdx -ge 0) {
+            $script:bmRows[$rowIdx].LogoPath = $newLogo
+            $dr = Find-DataRow -Id $rowId
+            if ($dr) { $dr['LogoPath'] = $newLogo }
+        }
+    })
+
+    # ── Set Assignment dropdown ───────────────────────────────────────────────
+    # Applies a predefined assignment to all selected rows (or all rows if none selected).
+    # Uses MenuItem.Tag to avoid PowerShell closure/variable-capture issues.
+    function Apply-AssignmentPreset {
+        param([hashtable]$Asg)
+
+        $targets = @($bulkGrid.SelectedItems)
+        if (-not $targets) { $targets = @($bulkGrid.Items) }
+
+        foreach ($rowView in $targets) {
+            if ($rowView -isnot [System.Data.DataRowView]) { continue }
+            $id  = $rowView['_Id'] -as [string]
+            $idx = Find-RowById -Id $id
+            if ($idx -lt 0) { continue }
+
+            $script:bmRows[$idx].Assignment = $Asg.Clone()
+
+            $dr = Find-DataRow -Id $id
+            if ($dr) { $dr['Assignment'] = Get-AssignmentSummary -Asg $Asg }
+        }
+
+        Refresh-StatusBar
+    }
+
+    # Build ContextMenu programmatically so MenuItem.Tag can carry the payload,
+    # avoiding closure capture of loop variables.
+    $asgMenu = New-Object System.Windows.Controls.ContextMenu
+
+    $asgPresets = [ordered]@{
+        'All Devices — Required'  = @{ Type='AllDevices'; Intent='required';  Notification='showAll' }
+        'All Devices — Available' = @{ Type='AllDevices'; Intent='available'; Notification='showAll' }
+        'All Users — Required'    = @{ Type='AllUsers';   Intent='required';  Notification='showAll' }
+        'All Users — Available'   = @{ Type='AllUsers';   Intent='available'; Notification='showAll' }
+        '---'                     = $null
+        'None'                    = @{ Type='None' }
+    }
+
+    foreach ($label in $asgPresets.Keys) {
+        if ($label -eq '---') {
+            $asgMenu.Items.Add([System.Windows.Controls.Separator]::new()) | Out-Null
+            continue
+        }
+        $mi        = [System.Windows.Controls.MenuItem]::new()
+        $mi.Header = $label
+        $mi.Tag    = $asgPresets[$label]   # payload stored on the item — no closure needed
+        $mi.Add_Click({
+            param($sender, $e)
+            Apply-AssignmentPreset -Asg $sender.Tag
+        })
+        $asgMenu.Items.Add($mi) | Out-Null
+    }
+
+    $btnAssignment.ContextMenu = $asgMenu
+    $btnAssignment.Add_Click({
+        $btnAssignment.ContextMenu.PlacementTarget = $btnAssignment
+        $btnAssignment.ContextMenu.Placement = [System.Windows.Controls.Primitives.PlacementMode]::Bottom
+        $btnAssignment.ContextMenu.IsOpen    = $true
+    })
+
     # ── Full Setup (opens Show-AppUploadForm pre-populated) ───────────────────
     function Open-FullSetup {
         param([string]$Id)
@@ -761,10 +900,10 @@ function Show-BulkManager {
             $dr = Find-DataRow -Id $Id
             if ($dr) {
                 $dr['SourceFolder'] = $updated.SourceFolder ?? ''
-                $dr['SourceLeaf']   = if ($updated.SourceFolder) { Split-Path $updated.SourceFolder -Leaf } else { '' }
                 $dr['DisplayName']  = $updated.DisplayName  ?? ''
                 $dr['Version']      = $updated.Version      ?? ''
                 $dr['Publisher']    = $updated.Publisher    ?? ''
+                $dr['LogoPath']     = $updated.LogoPath     ?? ''
                 $dr['Template']     = $updated.Template     ?? ''
                 $dr['Detection']    = Get-DetectionSummary  -Det $updated.Detection
                 $dr['Assignment']   = Get-AssignmentSummary -Asg $updated.Assignment
@@ -900,7 +1039,7 @@ function Show-BulkManager {
         if ($confirm -ne 'Yes') { return }
 
         # Disable toolbar during upload
-        foreach ($btn in @($btnAddRow,$btnBrowse,$btnFullSetup,$btnRemove,$btnClear,
+        foreach ($btn in @($btnAddRow,$btnBrowse,$btnBrowseLogo,$btnAssignment,$btnFullSetup,$btnRemove,$btnClear,
                            $btnImport,$btnExport,$btnUploadSel,$btnUploadAll)) {
             $btn.IsEnabled = $false
         }
@@ -941,7 +1080,7 @@ function Show-BulkManager {
         $txtUploadResult.Text = $summary
 
         # Re-enable toolbar
-        foreach ($btn in @($btnAddRow,$btnBrowse,$btnFullSetup,$btnRemove,$btnClear,$btnImport)) {
+        foreach ($btn in @($btnAddRow,$btnBrowse,$btnBrowseLogo,$btnAssignment,$btnFullSetup,$btnRemove,$btnClear,$btnImport)) {
             $btn.IsEnabled = $true
         }
         Refresh-StatusBar  # re-enables export/upload buttons based on row count
