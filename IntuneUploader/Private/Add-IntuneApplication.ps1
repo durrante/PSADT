@@ -269,7 +269,7 @@ function Add-IntuneApplication {
         Publisher                         = $AppConfig.Publisher         ?? ''
         AppVersion                        = $AppConfig.Version           ?? ''
         Owner                             = $AppConfig.Owner             ?? ''
-        Notes                             = $AppConfig.Notes             ?? ''
+        Notes                             = $AppConfig.Notes ?? ''
         InstallCommandLine                = $AppConfig.InstallCommandLine
         UninstallCommandLine              = $AppConfig.UninstallCommandLine
         InstallExperience                 = $installExp

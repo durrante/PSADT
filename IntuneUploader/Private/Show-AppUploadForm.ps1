@@ -201,17 +201,6 @@ function Show-AppUploadForm {
                        ToolTip="Admin-facing notes in Intune portal"/>
             </Grid>
 
-            <Grid Style="{StaticResource FieldRow}">
-              <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="110"/>
-                <ColumnDefinition Width="*"/>
-              </Grid.ColumnDefinitions>
-              <Label Content="Internal Note" Grid.Column="0" VerticalAlignment="Top" Padding="0,4,6,0"/>
-              <TextBox x:Name="TxtInternalNote" Grid.Column="1" Height="50"
-                       TextWrapping="Wrap" AcceptsReturn="True" VerticalScrollBarVisibility="Auto"
-                       ToolTip="Team reference only — not uploaded to Intune. e.g. 'Uses PSADT v4', 'Requires VPN'"/>
-            </Grid>
-
             <TextBlock Style="{StaticResource SectionHeader}" Text="URLs"/>
 
             <Grid Style="{StaticResource FieldRow}">
@@ -843,7 +832,6 @@ function Show-AppUploadForm {
     $txtOwner            = Find 'TxtOwner'
     $txtDescription      = Find 'TxtDescription'
     $txtNotes            = Find 'TxtNotes'
-    $txtInternalNote     = Find 'TxtInternalNote'
     $txtInfoURL          = Find 'TxtInfoURL'
     $txtPrivacyURL       = Find 'TxtPrivacyURL'
     $panelCategories     = Find 'PanelCategories'
@@ -1070,7 +1058,7 @@ function Show-AppUploadForm {
             if (-not $txtVersion.Text)     { $txtVersion.Text     = $meta.AppVersion }
             if (-not $txtPublisher.Text)   { $txtPublisher.Text   = $meta.AppVendor }
             if (-not $txtOwner.Text)       { $txtOwner.Text       = $meta.AppOwner }
-            if (-not $txtInternalNote.Text){ $txtInternalNote.Text = "PSADT v4 package ($($meta.AppName))" }
+            if (-not $txtNotes.Text)       { $txtNotes.Text       = "PSADT v4 package ($($meta.AppName))" }
 
             $txtInstallCmd.Text     = $meta.InstallCommandLine
             $txtUninstallCmd.Text   = $meta.UninstallCommandLine
@@ -1405,7 +1393,6 @@ function Show-AppUploadForm {
             Owner                    = $txtOwner.Text
             Description              = $txtDescription.Text
             Notes                    = $txtNotes.Text
-            InternalNote             = $txtInternalNote.Text
             InformationURL           = $txtInfoURL.Text
             PrivacyURL               = $txtPrivacyURL.Text
             Categories               = $selectedCategories
@@ -1447,7 +1434,6 @@ function Show-AppUploadForm {
         if ($p.Owner)          { $txtOwner.Text         = $p.Owner          }
         if ($p.Description)    { $txtDescription.Text   = $p.Description    }
         if ($p.Notes)          { $txtNotes.Text         = $p.Notes          }
-        if ($p.InternalNote)   { $txtInternalNote.Text  = $p.InternalNote   }
         if ($p.InformationURL) { $txtInfoURL.Text       = $p.InformationURL }
         if ($p.PrivacyURL)     { $txtPrivacyURL.Text    = $p.PrivacyURL     }
 
@@ -1576,10 +1562,17 @@ function Show-AppUploadForm {
         }
 
         # ── Categories ──
-        if ($p.Categories) {
+        # Accept either a Categories array (from Full Setup result) or a Category string (from bulk grid)
+        $preCategories = if ($p.Categories -and @($p.Categories).Count -gt 0) {
+            @($p.Categories)
+        } elseif ($p.Category -and $p.Category -ne '') {
+            @($p.Category)
+        } else { @() }
+
+        if ($preCategories.Count -gt 0) {
             foreach ($child in $panelCategories.Children) {
                 if ($child -is [System.Windows.Controls.CheckBox]) {
-                    $child.IsChecked = ($p.Categories -contains $child.Content)
+                    $child.IsChecked = ($preCategories -contains $child.Content)
                 }
             }
         }
