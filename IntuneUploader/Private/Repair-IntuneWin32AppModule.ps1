@@ -1,24 +1,30 @@
 <#
 .SYNOPSIS
-    Patches the installed IntuneWin32App module for compatibility fixes.
+    Patches all installed IntuneWin32App module versions for compatibility fixes.
 
 .DESCRIPTION
-    Applies two patches to the MSEndpointMgr IntuneWin32App module:
+    Finds every installed copy of the IntuneWin32App module and applies locale-fix patches so
+    that the tool works correctly on non-US systems (e.g. en-GB where day > 12 breaks
+    InvariantCulture DateTime parsing).
 
-    Patch 1 — New-IntuneWin32AppRequirementRule.ps1
-        The shipped ValidateSet only covers OS versions up to W11_22H2
-        and architectures up to x64/x86/All.
-        Updated to support:
-          - OS:   W10_1607 through W11_24H2  (W11_25H2 excluded — not yet accepted by Intune API)
-          - Arch: x64, x86, arm64, x64arm64, x64x86, AllWithARM64
+    Patches for module version 1.3.x (Windows PowerShell 5.1 path):
+      Patch 1 — New-IntuneWin32AppRequirementRule.ps1
+          Adds W11_23H2, W11_24H2, arm64, x64arm64, AllWithARM64 support.
 
-    Patch 2 — Add-IntuneWin32App.ps1
-        The Begin block subtracts ExpiresOn from the current UTC time.
-        On non-US locales (e.g. en-GB), PowerShell may coerce ExpiresOn to a
-        culture-formatted string ('13/04/2026 17:08:23'). DateTime.Parse with
-        InvariantCulture then fails because the day value (13) is treated as a
-        month, which is invalid.
-        Fixed by normalising ExpiresOn to a proper UTC DateTime before arithmetic.
+      Patch 2 — Add-IntuneWin32App.ps1
+          Normalises ExpiresOn in the Begin block before arithmetic, so en-GB locales
+          (day > 12) don't produce an InvariantCulture string-parse failure.
+
+      Patch 3 — Invoke-AzureStorageBlobUpload.ps1 (1.3.x)
+          Same locale fix for AccessToken.ExpiresOn in the upload chunk loop.
+
+    Patches for module version 1.4.x / 1.5.x (PowerShell 7 path):
+      Patch A — Private\Invoke-AzureStorageBlobUpload.ps1
+          Replaces [DateTimeOffset]::Parse(ExpiresOn.ToString(), InvariantCulture)
+          with a direct .ToUniversalTime() call — no string round-trip, no locale issue.
+
+      Patch B — Public\Test-AccessToken.ps1
+          Same fix for the identical pattern in Test-AccessToken.
 
     Safe to call multiple times — skips any patch already applied.
     Returns $true if at least one patch was applied, $false if all were already up to date.
@@ -29,41 +35,156 @@ function Repair-IntuneWin32AppModule {
     [OutputType([bool])]
     param()
 
-    $moduleBase = (Get-Module IntuneWin32App -ListAvailable |
-                   Sort-Object Version -Descending |
-                   Select-Object -First 1).ModuleBase
-
-    if (-not $moduleBase) {
+    $allModules = Get-Module IntuneWin32App -ListAvailable -ErrorAction SilentlyContinue
+    if (-not $allModules) {
         Write-Warning 'Repair-IntuneWin32AppModule: IntuneWin32App module not found — skipping patches.'
         return $false
     }
 
-    $patched1 = $false
-    $patched2 = $false
+    $anyPatched = $false
 
-    # ══════════════════════════════════════════════════════════════════════════
-    # Patch 1 — New-IntuneWin32AppRequirementRule.ps1
-    #   Adds W11_23H2, W11_24H2 and ARM64/x64arm64/AllWithARM64 support.
-    # ══════════════════════════════════════════════════════════════════════════
-    $requirementRuleFile = Join-Path $moduleBase 'Public\New-IntuneWin32AppRequirementRule.ps1'
+    foreach ($mod in $allModules) {
+        $moduleBase = $mod.ModuleBase
+        $version    = $mod.Version
+        Write-Verbose "Repair-IntuneWin32AppModule: checking version $version at $moduleBase"
 
-    if (-not (Test-Path $requirementRuleFile)) {
-        Write-Warning "Repair-IntuneWin32AppModule: $requirementRuleFile not found — skipping patch 1."
-    }
-    else {
-        $reqContent = Get-Content $requirementRuleFile -Raw
-        # Guard: W11_23H2 present AND W11_25H2 absent AND x64arm64 present = already patched
-        $alreadyPatched1 = ($reqContent -match 'W11_23H2' -and
-                            $reqContent -notmatch 'W11_25H2' -and
-                            $reqContent -match 'x64arm64')
+        # ──────────────────────────────────────────────────────────────────────
+        # Determine generation: 1.3.x uses one code style; 1.4+/1.5+ uses another
+        # ──────────────────────────────────────────────────────────────────────
+        $isModern = ($version.Major -ge 2) -or ($version.Major -eq 1 -and $version.Minor -ge 4)
 
-        if ($alreadyPatched1) {
-            Write-Verbose 'Repair-IntuneWin32AppModule: requirement rule already fully patched.'
+        if ($isModern) {
+            # ══════════════════════════════════════════════════════════════════
+            # Patch A — Invoke-AzureStorageBlobUpload.ps1 (1.4+/1.5+)
+            #   [DateTimeOffset]::Parse(ExpiresOn.ToString(), InvariantCulture, …)
+            #   fails on en-GB when day > 12 (month 13 = invalid).
+            #   Fix: use ExpiresOn.ToUniversalTime() directly.
+            # ══════════════════════════════════════════════════════════════════
+            $blobFile = Join-Path $moduleBase 'Private\Invoke-AzureStorageBlobUpload.ps1'
+            if (-not (Test-Path $blobFile)) {
+                Write-Verbose "Repair-IntuneWin32AppModule: $blobFile not found — skipping Patch A."
+            }
+            else {
+                $blobContent = Get-Content $blobFile -Raw
+                # Guard: already patched if sentinel variable present
+                if ($blobContent -match '_eo\b.*is \[System\.DateTimeOffset\]') {
+                    Write-Verbose 'Repair-IntuneWin32AppModule: Patch A already applied.'
+                }
+                else {
+                    $oldStr = @'
+        # Convert ExpiresOn to DateTimeOffset in UTC
+        $ExpiresOnUTC = [DateTimeOffset]::Parse(
+            $Global:AccessToken.ExpiresOn.ToString(),
+            [System.Globalization.CultureInfo]::InvariantCulture,
+            [System.Globalization.DateTimeStyles]::AssumeUniversal
+            ).ToUniversalTime()
+'@
+                    $newStr = @'
+        # Patch A (IntuneUploader): avoid locale-specific ToString() + InvariantCulture Parse,
+        # which fails when day > 12 (e.g. en-GB '13/04/2026' parsed as month 13 = invalid).
+        # ExpiresOn is a DateTimeOffset — convert to UTC directly without string round-trip.
+        $_eo = $Global:AccessToken.ExpiresOn
+        $ExpiresOnUTC = if ($_eo -is [System.DateTimeOffset]) {
+            $_eo.ToUniversalTime()
+        } elseif ($_eo -is [datetime]) {
+            [System.DateTimeOffset]::new([datetime]::SpecifyKind($_eo, [System.DateTimeKind]::Utc), [System.TimeSpan]::Zero)
+        } else {
+            [System.DateTimeOffset]::UtcNow.AddHours(1)
+        }
+'@
+                    if ($blobContent -match [regex]::Escape('$Global:AccessToken.ExpiresOn.ToString()')) {
+                        $patchedContent = $blobContent.Replace($oldStr, $newStr)
+                        try {
+                            Set-Content -Path $blobFile -Value $patchedContent -Encoding UTF8 -Force
+                            Write-Verbose "Repair-IntuneWin32AppModule: Patch A applied to $blobFile"
+                            $anyPatched = $true
+                        }
+                        catch {
+                            Write-Warning "Repair-IntuneWin32AppModule: could not write Patch A — $_"
+                        }
+                    }
+                    else {
+                        Write-Verbose 'Repair-IntuneWin32AppModule: target for Patch A not found in Invoke-AzureStorageBlobUpload.ps1 — skipping.'
+                    }
+                }
+            }
+
+            # ══════════════════════════════════════════════════════════════════
+            # Patch B — Test-AccessToken.ps1 (1.4+/1.5+)
+            #   Same [DateTimeOffset]::Parse(ExpiresOn.ToString(), InvariantCulture) bug.
+            # ══════════════════════════════════════════════════════════════════
+            $tokenFile = Join-Path $moduleBase 'Public\Test-AccessToken.ps1'
+            if (-not (Test-Path $tokenFile)) {
+                Write-Verbose "Repair-IntuneWin32AppModule: $tokenFile not found — skipping Patch B."
+            }
+            else {
+                $tokenContent = Get-Content $tokenFile -Raw
+                if ($tokenContent -match '_eo2\b.*is \[System\.DateTimeOffset\]') {
+                    Write-Verbose 'Repair-IntuneWin32AppModule: Patch B already applied.'
+                }
+                else {
+                    $oldStrB = '            # Convert ExpiresOn to DateTimeOffset in UTC' + "`r`n" +
+                               '            $ExpiresOnUTC = [DateTimeOffset]::Parse($Global:AccessToken.ExpiresOn.ToString(), [System.Globalization.CultureInfo]::InvariantCulture, [System.Globalization.DateTimeStyles]::AssumeUniversal).ToUniversalTime()'
+                    $oldStrB_lf = '            # Convert ExpiresOn to DateTimeOffset in UTC' + "`n" +
+                               '            $ExpiresOnUTC = [DateTimeOffset]::Parse($Global:AccessToken.ExpiresOn.ToString(), [System.Globalization.CultureInfo]::InvariantCulture, [System.Globalization.DateTimeStyles]::AssumeUniversal).ToUniversalTime()'
+                    $newStrB = @'
+            # Patch B (IntuneUploader): avoid locale-specific ToString() + InvariantCulture Parse.
+            $_eo2 = $Global:AccessToken.ExpiresOn
+            $ExpiresOnUTC = if ($_eo2 -is [System.DateTimeOffset]) {
+                $_eo2.ToUniversalTime()
+            } elseif ($_eo2 -is [datetime]) {
+                [System.DateTimeOffset]::new([datetime]::SpecifyKind($_eo2, [System.DateTimeKind]::Utc), [System.TimeSpan]::Zero)
+            } else {
+                [System.DateTimeOffset]::UtcNow.AddHours(1)
+            }
+'@
+                    if ($tokenContent -match [regex]::Escape('$Global:AccessToken.ExpiresOn.ToString()')) {
+                        $patchedTokenContent = $tokenContent.Replace($oldStrB, $newStrB)
+                        if ($patchedTokenContent -eq $tokenContent) {
+                            # Try LF line endings
+                            $patchedTokenContent = $tokenContent.Replace($oldStrB_lf, $newStrB)
+                        }
+                        if ($patchedTokenContent -ne $tokenContent) {
+                            try {
+                                Set-Content -Path $tokenFile -Value $patchedTokenContent -Encoding UTF8 -Force
+                                Write-Verbose "Repair-IntuneWin32AppModule: Patch B applied to $tokenFile"
+                                $anyPatched = $true
+                            }
+                            catch {
+                                Write-Warning "Repair-IntuneWin32AppModule: could not write Patch B — $_"
+                            }
+                        }
+                        else {
+                            Write-Verbose 'Repair-IntuneWin32AppModule: could not match Patch B target text exactly — skipping (already patched or format changed).'
+                        }
+                    }
+                    else {
+                        Write-Verbose 'Repair-IntuneWin32AppModule: target for Patch B not found in Test-AccessToken.ps1 — skipping.'
+                    }
+                }
+            }
         }
         else {
-            Write-Verbose "Repair-IntuneWin32AppModule: applying patch 1 — $requirementRuleFile"
+            # ══════════════════════════════════════════════════════════════════
+            # Legacy 1.3.x patches (Windows PowerShell 5.1 module path)
+            # ══════════════════════════════════════════════════════════════════
 
-            $patchedContent = @'
+            # Patch 1 — New-IntuneWin32AppRequirementRule.ps1
+            $requirementRuleFile = Join-Path $moduleBase 'Public\New-IntuneWin32AppRequirementRule.ps1'
+            if (-not (Test-Path $requirementRuleFile)) {
+                Write-Verbose "Repair-IntuneWin32AppModule: $requirementRuleFile not found — skipping Patch 1."
+            }
+            else {
+                $reqContent = Get-Content $requirementRuleFile -Raw
+                $alreadyPatched1 = ($reqContent -match 'W11_23H2' -and
+                                    $reqContent -notmatch 'W11_25H2' -and
+                                    $reqContent -match 'x64arm64')
+                if ($alreadyPatched1) {
+                    Write-Verbose 'Repair-IntuneWin32AppModule: Patch 1 already applied.'
+                }
+                else {
+                    Write-Verbose "Repair-IntuneWin32AppModule: applying Patch 1 — $requirementRuleFile"
+                    $patchedContent = @'
 function New-IntuneWin32AppRequirementRule {
     <#
     .SYNOPSIS
@@ -178,90 +299,119 @@ function New-IntuneWin32AppRequirementRule {
     }
 }
 '@
-
-            try {
-                Set-Content -Path $requirementRuleFile -Value $patchedContent -Encoding UTF8 -Force
-                Write-Verbose 'Repair-IntuneWin32AppModule: patch 1 applied successfully.'
-                $patched1 = $true
-            }
-            catch {
-                Write-Warning "Repair-IntuneWin32AppModule: could not write patch 1 — $_"
-            }
-        }
-    }
-
-    # ══════════════════════════════════════════════════════════════════════════
-    # Patch 2 — Add-IntuneWin32App.ps1
-    #   Normalises ExpiresOn before DateTime arithmetic so en-GB / non-US
-    #   locales don't produce an unparseable culture-formatted string.
-    # ══════════════════════════════════════════════════════════════════════════
-    $addAppFile = Join-Path $moduleBase 'Public\Add-IntuneWin32App.ps1'
-
-    if (-not (Test-Path $addAppFile)) {
-        Write-Warning "Repair-IntuneWin32AppModule: $addAppFile not found — skipping patch 2."
-    }
-    else {
-        # Guard: look for our sentinel variable name
-        $addLines = Get-Content $addAppFile
-        $alreadyPatched2 = $addLines -match '_expiresOn'
-
-        if ($alreadyPatched2) {
-            Write-Verbose 'Repair-IntuneWin32AppModule: Add-IntuneWin32App.ps1 already patched.'
-        }
-        else {
-            # Find the target line
-            $targetIdx = -1
-            for ($ln = 0; $ln -lt $addLines.Count; $ln++) {
-                if ($addLines[$ln] -match 'TokenLifeTime\s*=\s*\(\s*\$Global:AuthenticationHeader\.ExpiresOn') {
-                    $targetIdx = $ln
-                    break
+                    try {
+                        Set-Content -Path $requirementRuleFile -Value $patchedContent -Encoding UTF8 -Force
+                        Write-Verbose 'Repair-IntuneWin32AppModule: Patch 1 applied.'
+                        $anyPatched = $true
+                    }
+                    catch { Write-Warning "Repair-IntuneWin32AppModule: could not write Patch 1 — $_" }
                 }
             }
 
-            if ($targetIdx -lt 0) {
-                Write-Verbose 'Repair-IntuneWin32AppModule: TokenLifeTime line not found in Add-IntuneWin32App.ps1 — skipping patch 2.'
+            # Patch 2 — Add-IntuneWin32App.ps1 Begin block (1.3.x)
+            $addAppFile = Join-Path $moduleBase 'Public\Add-IntuneWin32App.ps1'
+            if (-not (Test-Path $addAppFile)) {
+                Write-Verbose "Repair-IntuneWin32AppModule: $addAppFile not found — skipping Patch 2."
             }
             else {
-                Write-Verbose "Repair-IntuneWin32AppModule: applying patch 2 — $addAppFile (line $($targetIdx + 1))"
-
-                # Detect indentation from the existing line
-                $indent = ''
-                if ($addLines[$targetIdx] -match '^(\s+)') { $indent = $Matches[1] }
-
-                $replacement = @(
-                    "$indent# Patch 2 (IntuneUploader): normalise ExpiresOn so non-US locales (e.g. en-GB) don't"
-                    "$indent# produce a culture-formatted string that InvariantCulture DateTime.Parse rejects."
-                    "${indent}`$_expiresOn = `$Global:AuthenticationHeader.ExpiresOn"
-                    "${indent}if (`$_expiresOn -is [string]) {"
-                    "${indent}    try   { `$_expiresOn = [datetime]::Parse(`$_expiresOn, [System.Globalization.CultureInfo]::CurrentCulture) }"
-                    "${indent}    catch { `$_expiresOn = [datetime]::UtcNow.AddHours(1) }"
-                    "${indent}} elseif (`$_expiresOn -is [System.DateTimeOffset]) {"
-                    "${indent}    `$_expiresOn = `$_expiresOn.UtcDateTime"
-                    "${indent}}"
-                    "${indent}`$TokenLifeTime = (`$_expiresOn - (Get-Date).ToUniversalTime()).Minutes"
-                )
-
-                $newLines = [System.Collections.Generic.List[string]]::new()
-                for ($ln = 0; $ln -lt $addLines.Count; $ln++) {
-                    if ($ln -eq $targetIdx) {
-                        $newLines.AddRange([string[]]$replacement)
+                $addLines = Get-Content $addAppFile
+                $alreadyPatched2 = $addLines -match '_expiresOn'
+                if ($alreadyPatched2) {
+                    Write-Verbose 'Repair-IntuneWin32AppModule: Patch 2 already applied.'
+                }
+                else {
+                    $targetIdx = -1
+                    for ($ln = 0; $ln -lt $addLines.Count; $ln++) {
+                        if ($addLines[$ln] -match 'TokenLifeTime\s*=\s*\(\s*\$Global:AuthenticationHeader\.ExpiresOn') {
+                            $targetIdx = $ln
+                            break
+                        }
+                    }
+                    if ($targetIdx -lt 0) {
+                        Write-Verbose 'Repair-IntuneWin32AppModule: Patch 2 target not found — skipping.'
                     }
                     else {
-                        $newLines.Add($addLines[$ln])
+                        $indent = ''
+                        if ($addLines[$targetIdx] -match '^(\s+)') { $indent = $Matches[1] }
+                        $replacement = @(
+                            "$indent# Patch 2 (IntuneUploader): normalise ExpiresOn so non-US locales (e.g. en-GB) don't"
+                            "$indent# produce a culture-formatted string that InvariantCulture DateTime.Parse rejects."
+                            "${indent}`$_expiresOn = `$Global:AuthenticationHeader.ExpiresOn"
+                            "${indent}if (`$_expiresOn -is [string]) {"
+                            "${indent}    try   { `$_expiresOn = [datetime]::Parse(`$_expiresOn, [System.Globalization.CultureInfo]::CurrentCulture) }"
+                            "${indent}    catch { `$_expiresOn = [datetime]::UtcNow.AddHours(1) }"
+                            "${indent}} elseif (`$_expiresOn -is [System.DateTimeOffset]) {"
+                            "${indent}    `$_expiresOn = `$_expiresOn.UtcDateTime"
+                            "${indent}} elseif (`$_expiresOn -isnot [datetime]) {"
+                            "${indent}    `$_expiresOn = [datetime]::UtcNow.AddHours(1)"
+                            "${indent}}"
+                            "${indent}`$TokenLifeTime = (`$_expiresOn - (Get-Date).ToUniversalTime()).Minutes"
+                        )
+                        $newLines = [System.Collections.Generic.List[string]]::new()
+                        for ($ln = 0; $ln -lt $addLines.Count; $ln++) {
+                            if ($ln -eq $targetIdx) { $newLines.AddRange([string[]]$replacement) }
+                            else                    { $newLines.Add($addLines[$ln]) }
+                        }
+                        try {
+                            Set-Content -Path $addAppFile -Value $newLines -Encoding UTF8 -Force
+                            Write-Verbose 'Repair-IntuneWin32AppModule: Patch 2 applied.'
+                            $anyPatched = $true
+                        }
+                        catch { Write-Warning "Repair-IntuneWin32AppModule: could not write Patch 2 — $_" }
                     }
                 }
+            }
 
-                try {
-                    Set-Content -Path $addAppFile -Value $newLines -Encoding UTF8 -Force
-                    Write-Verbose 'Repair-IntuneWin32AppModule: patch 2 applied successfully.'
-                    $patched2 = $true
+            # Patch 3 — Invoke-AzureStorageBlobUpload.ps1 (1.3.x)
+            $blobFile3 = Join-Path $moduleBase 'Private\Invoke-AzureStorageBlobUpload.ps1'
+            if (-not (Test-Path $blobFile3)) {
+                Write-Verbose "Repair-IntuneWin32AppModule: $blobFile3 not found — skipping Patch 3."
+            }
+            else {
+                $blobLines = Get-Content $blobFile3
+                $alreadyPatched3 = $blobLines -match '_atExpiry'
+                if ($alreadyPatched3) {
+                    Write-Verbose 'Repair-IntuneWin32AppModule: Patch 3 already applied.'
                 }
-                catch {
-                    Write-Warning "Repair-IntuneWin32AppModule: could not write patch 2 — $_"
+                else {
+                    $targetIdx3 = -1
+                    for ($ln = 0; $ln -lt $blobLines.Count; $ln++) {
+                        if ($blobLines[$ln] -match 'TokenExpiresMinutes\s*=\s*\(\s*\$Global:AccessToken\.ExpiresOn') {
+                            $targetIdx3 = $ln; break
+                        }
+                    }
+                    if ($targetIdx3 -lt 0) {
+                        Write-Verbose 'Repair-IntuneWin32AppModule: Patch 3 target not found — skipping.'
+                    }
+                    else {
+                        $indent3 = ''
+                        if ($blobLines[$targetIdx3] -match '^(\s+)') { $indent3 = $Matches[1] }
+                        $replacement3 = @(
+                            "$indent3# Patch 3 (IntuneUploader): normalise AccessToken.ExpiresOn before arithmetic."
+                            "${indent3}`$_atExpiry = if (`$Global:AccessToken -and `$Global:AccessToken.ExpiresOn) {"
+                            "${indent3}    `$e = `$Global:AccessToken.ExpiresOn"
+                            "${indent3}    if (`$e -is [System.DateTimeOffset])  { `$e.UtcDateTime }"
+                            "${indent3}    elseif (`$e -is [datetime])            { `$e }"
+                            "${indent3}    else { try { [datetime]::Parse([string]`$e, [System.Globalization.CultureInfo]::CurrentCulture) } catch { [datetime]::UtcNow.AddHours(1) } }"
+                            "${indent3}} else { [datetime]::UtcNow.AddHours(1) }"
+                            "${indent3}`$TokenExpiresMinutes = (`$_atExpiry - `$UTCDateTime).Minutes"
+                        )
+                        $newBlobLines = [System.Collections.Generic.List[string]]::new()
+                        for ($ln = 0; $ln -lt $blobLines.Count; $ln++) {
+                            if ($ln -eq $targetIdx3) { $newBlobLines.AddRange([string[]]$replacement3) }
+                            else                     { $newBlobLines.Add($blobLines[$ln]) }
+                        }
+                        try {
+                            Set-Content -Path $blobFile3 -Value $newBlobLines -Encoding UTF8 -Force
+                            Write-Verbose 'Repair-IntuneWin32AppModule: Patch 3 applied.'
+                            $anyPatched = $true
+                        }
+                        catch { Write-Warning "Repair-IntuneWin32AppModule: could not write Patch 3 — $_" }
+                    }
                 }
             }
         }
     }
 
-    return $patched1 -or $patched2
+    return $anyPatched
 }

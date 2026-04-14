@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+#Requires -Version 7.0
 <#
 .SYNOPSIS
     One-time setup script for the Intune Win32 App Uploader tool.
@@ -12,14 +12,29 @@
     - Tests authentication with delegated permissions (interactive browser login)
 
 .NOTES
+    IMPORTANT: Must be run in PowerShell 7 (pwsh.exe), NOT Windows PowerShell 5.1
+    (powershell.exe). Modules installed by PS7 go to the PS7 module path; modules
+    installed by PS5.1 go to a separate path and will NOT be loaded when the tool runs.
+
     Run once before using Invoke-IntuneUploader.ps1.
     Requires internet access and PowerShell running as Administrator for module installation.
+
+.EXAMPLE
+    pwsh .\Setup-IntuneUploader.ps1
 #>
 
 [CmdletBinding()]
 param()
 
 $ErrorActionPreference = 'Stop'
+
+# Belt-and-braces check in case the #Requires line is somehow bypassed
+if ($PSVersionTable.PSVersion.Major -lt 7) {
+    Write-Error ("This setup script requires PowerShell 7 (pwsh.exe).`n" +
+                 "You are running PowerShell $($PSVersionTable.PSVersion).`n`n" +
+                 "Run setup with:  pwsh `"$PSCommandPath`"")
+    exit 1
+}
 
 #region Helpers
 
@@ -121,28 +136,20 @@ foreach ($mod in $requiredModules) {
     }
 }
 
-# Patch IntuneWin32App module for modern OS versions and ARM64 support.
-# The shipped module only supports up to W11_22H2 and x64/x86/All architectures.
-# This patch adds W11_23H2, W11_24H2, W11_25H2 and arm64/x64x86/AllWithARM64.
-Write-Step 'Patching IntuneWin32App module for W11_23H2 / W11_24H2 / W11_25H2 and ARM64 support...'
-$moduleBase = (Get-Module IntuneWin32App -ListAvailable | Sort-Object Version -Descending | Select-Object -First 1).ModuleBase
-$patchTarget = Join-Path $moduleBase 'Public\New-IntuneWin32AppRequirementRule.ps1'
-
-if ((Test-Path $patchTarget) -and ((Get-Content $patchTarget -Raw) -notmatch 'W11_23H2')) {
-    # Dot-source the patch function from the tool's Private folder and apply it
-    $patchScript = Join-Path $ToolRoot 'Private\Repair-IntuneWin32AppModule.ps1'
-    if (Test-Path $patchScript) {
-        . $patchScript
-        $result = Repair-IntuneWin32AppModule
-        if ($result) { Write-OK 'IntuneWin32App module patched.' }
-        else          { Write-Host '[!] Patch already applied or file not found.' -ForegroundColor Yellow }
-    }
-    else {
-        Write-Host '[!] Patch script not found — skipping. The tool Private folder may be incomplete.' -ForegroundColor Yellow
-    }
+# Apply compatibility patches to all installed IntuneWin32App versions.
+# Fixes: W11_23H2/24H2 + ARM64 support (1.3.x), locale-specific DateTimeOffset
+# parse failure on non-US systems (1.4+/1.5+), and any other known issues.
+# Repair-IntuneWin32AppModule is idempotent — safe to call multiple times.
+Write-Step 'Applying compatibility patches to IntuneWin32App module...'
+$patchScript = Join-Path $ToolRoot 'Private\Repair-IntuneWin32AppModule.ps1'
+if (Test-Path $patchScript) {
+    . $patchScript
+    $result = Repair-IntuneWin32AppModule
+    if ($result) { Write-OK 'IntuneWin32App module patched successfully.' }
+    else          { Write-OK 'IntuneWin32App module — all patches already applied.' }
 }
 else {
-    Write-OK 'IntuneWin32App module already up to date — no patch needed.'
+    Write-Host '[!] Repair-IntuneWin32AppModule.ps1 not found — skipping. The tool Private folder may be incomplete.' -ForegroundColor Yellow
 }
 
 #endregion

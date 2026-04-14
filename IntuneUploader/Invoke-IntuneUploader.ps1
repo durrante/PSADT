@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+#Requires -Version 7.0
 <#
 .SYNOPSIS
     Intune Win32 App Uploader — launches the GUI.
@@ -7,6 +7,10 @@
     Entry point for the tool. Loads config, dot-sources all private functions,
     then opens the WPF main window.
 
+    IMPORTANT: Must be run in PowerShell 7 (pwsh.exe), NOT Windows PowerShell 5.1
+    (powershell.exe). Running in 5.1 loads the wrong version of the IntuneWin32App
+    module and causes locale-specific DateTime parsing failures on non-US systems.
+
     Run Setup-IntuneUploader.ps1 first to install prerequisites and create config.json.
 
 .PARAMETER BulkFile
@@ -14,10 +18,10 @@
     Useful for scheduled or scripted runs.
 
 .EXAMPLE
-    .\Invoke-IntuneUploader.ps1
+    pwsh .\Invoke-IntuneUploader.ps1
 
 .EXAMPLE
-    .\Invoke-IntuneUploader.ps1 -BulkFile C:\Apps\BulkList.json
+    pwsh .\Invoke-IntuneUploader.ps1 -BulkFile C:\Apps\BulkList.json
 #>
 
 [CmdletBinding()]
@@ -26,6 +30,15 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+
+# Belt-and-braces check in case the #Requires line is somehow bypassed
+if ($PSVersionTable.PSVersion.Major -lt 7) {
+    Write-Error ("This tool requires PowerShell 7 (pwsh.exe).`n" +
+                 "You are running PowerShell $($PSVersionTable.PSVersion).`n`n" +
+                 "Start the tool with:  pwsh `"$PSCommandPath`"")
+    exit 1
+}
+
 $ToolRoot = $PSScriptRoot
 
 #region Load private functions
@@ -257,7 +270,7 @@ if ($BulkFile) {
 #region Apply module patches (runs before any Import-Module IntuneWin32App)
 $patched = Repair-IntuneWin32AppModule
 if ($patched) {
-    Write-Host '[OK] IntuneWin32App module patched (W11_23H2/W11_24H2 + ARM64 support; ExpiresOn DateTime fix).' -ForegroundColor Green
+    Write-Host '[OK] IntuneWin32App module patched (locale DateTime fix applied to all installed versions).' -ForegroundColor Green
     # Force unload so the connect button's Import-Module -Force picks up the patched file
     Remove-Module IntuneWin32App -Force -ErrorAction SilentlyContinue
 }

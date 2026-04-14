@@ -9,7 +9,21 @@
       "Read(//d/OneDrive/OneDrive - Alexdu/Documents/WindowsPowerShell/Modules/IntuneWin32App/1.3.5/Private/**)",
       "Bash(powershell.exe -Command 'Add-Type -AssemblyName System.IO.Compression.FileSystem; $zip = [System.IO.Compression.ZipFile]::OpenRead\\('\\\\''C:\\\\Users\\\\me\\\\Downloads\\\\IntunePackage\\\\7_Zip_Latest_PSADT.intunewin'\\\\''\\); $zip.Entries | Select-Object Name,FullName | Format-Table; $zip.Dispose\\(\\)')",
       "Bash(powershell.exe -Command 'Add-Type -AssemblyName System.IO.Compression.FileSystem; $zip = [System.IO.Compression.ZipFile]::OpenRead\\('\\\\''C:\\\\Users\\\\me\\\\Downloads\\\\IntunePackage\\\\7_Zip_Latest_PSADT.intunewin'\\\\''\\); $entry = $zip.Entries | Where-Object { $_.Name -eq '\\\\''Detection.xml'\\\\'' }; $reader = New-Object System.IO.StreamReader\\($entry.Open\\(\\)\\); $reader.ReadToEnd\\(\\); $reader.Dispose\\(\\); $zip.Dispose\\(\\)')",
-      "Read(//d/OneDrive/OneDrive - Alexdu/Documents/WindowsPowerShell/Modules/IntuneWin32App/1.3.5/**)"
+      "Read(//d/OneDrive/OneDrive - Alexdu/Documents/WindowsPowerShell/Modules/IntuneWin32App/1.3.5/**)",
+      "Bash(powershell -NoProfile -NonInteractive -Command ':*)",
+      "Read(//d/OneDrive/OneDrive - Alexdu/Documents/WindowsPowerShell/Modules/IntuneWin32App/**)",
+      "Read(//d/OneDrive/OneDrive - Alexdu/Documents/WindowsPowerShell/Modules/MSAL.PS/**)",
+      "Bash(powershell.exe -NoProfile -Command \"Get-Module MSAL.PS -ListAvailable | Select-Object Name,Version,ModuleBase | Format-List\")",
+      "Bash(powershell.exe -NoProfile -Command ':*)",
+      "Bash(where pwsh:*)",
+      "Bash(pwsh -NoProfile -Command ':*)",
+      "Bash(powershell.exe -NoProfile -Command 'Get-ChildItem -Path '\\\\''D:\\\\OneDrive\\\\OneDrive - Alexdu\\\\Documents\\\\WindowsPowerShell\\\\Modules\\\\IntuneWin32App\\\\1.3.5'\\\\'' -Recurse -Include '\\\\''*.ps1'\\\\'' | ForEach-Object { Select-String -Path $_.FullName -Pattern '\\\\''Parse'\\\\'' | ForEach-Object { '\\\\''$\\($_.Filename\\):$\\($_.LineNumber\\): $\\($_.Line.Trim\\(\\)\\)'\\\\'' } }')",
+      "Read(//d/OneDrive/OneDrive - Alexdu/Documents/PowerShell/Modules/IntuneWin32App/1.5.0/**)"
+    ],
+    "additionalDirectories": [
+      "D:\\OneDrive\\OneDrive - Alexdu\\Documents\\WindowsPowerShell\\Modules\\IntuneWin32App\\1.3.5\\Private",
+      "D:\\OneDrive\\OneDrive - Alexdu\\Documents\\PowerShell\\Modules\\IntuneWin32App\\1.5.0\\Private",
+      "D:\\OneDrive\\OneDrive - Alexdu\\Documents\\PowerShell\\Modules\\IntuneWin32App\\1.5.0\\Public"
     ]
   }
 }

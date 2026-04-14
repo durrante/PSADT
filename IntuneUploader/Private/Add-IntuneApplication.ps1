@@ -265,7 +265,7 @@ function Add-IntuneApplication {
     $appParams = @{
         FilePath                          = $IntunewinPath
         DisplayName                       = $AppConfig.DisplayName
-        Description                       = if ($AppConfig.Description) { $AppConfig.Description } else { $AppConfig.DisplayName }
+        Description                       = $AppConfig.Description ?? ''
         Publisher                         = $AppConfig.Publisher         ?? ''
         AppVersion                        = $AppConfig.Version           ?? ''
         Owner                             = $AppConfig.Owner             ?? ''
