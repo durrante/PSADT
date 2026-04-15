@@ -225,20 +225,40 @@ function Add-IntuneApplication {
     #endregion
 
     #region Return Codes
+    # The IntuneWin32App module always adds its own 5 default codes internally
+    # (Get-IntuneWin32AppDefaultReturnCode) then APPENDS whatever is passed via
+    # -ReturnCode. Passing the defaults a second time would create duplicates.
+    # Solution: only pass codes that are NOT in the module's built-in default set.
+    $moduleDefaultCodes = @(
+        @{ ReturnCode = 0;    Type = 'success'    }
+        @{ ReturnCode = 1707; Type = 'success'    }
+        @{ ReturnCode = 3010; Type = 'softReboot' }
+        @{ ReturnCode = 1641; Type = 'hardReboot' }
+        @{ ReturnCode = 1618; Type = 'retry'      }
+    )
+
+    # Determine source: AppConfig → template → nothing (module handles defaults)
+    $rcSource = if ($AppConfig.ReturnCodes -and @($AppConfig.ReturnCodes).Count -gt 0) {
+        @($AppConfig.ReturnCodes)
+    } else {
+        Get-TplVal 'ReturnCodes' $null
+    }
+
+    # Build only the custom codes — those not already covered by the module's defaults
     $returnCodes = @()
-    $tplRC = Get-TplVal 'ReturnCodes' $null
-    if ($tplRC) {
-        foreach ($rc in $tplRC) {
-            $returnCodes += New-IntuneWin32AppReturnCode -ReturnCode $rc.ReturnCode -Type $rc.Type
+    if ($rcSource) {
+        foreach ($rc in $rcSource) {
+            $code = [int](if ($rc -is [hashtable]) { $rc.ReturnCode ?? $rc.returnCode } else { $rc.ReturnCode ?? $rc.returnCode })
+            $type = [string](if ($rc -is [hashtable]) { $rc.Type ?? $rc.type ?? 'success' } else { $rc.Type ?? $rc.type ?? 'success' })
+
+            # Skip if this exactly matches one of the module's built-in defaults
+            $isDefault = $moduleDefaultCodes | Where-Object { $_.ReturnCode -eq $code -and $_.Type -eq $type }
+            if ($isDefault) { continue }
+
+            $returnCodes += New-IntuneWin32AppReturnCode -ReturnCode $code -Type $type
         }
     }
-    else {
-        $returnCodes += New-IntuneWin32AppReturnCode -ReturnCode 0    -Type success
-        $returnCodes += New-IntuneWin32AppReturnCode -ReturnCode 1707 -Type success
-        $returnCodes += New-IntuneWin32AppReturnCode -ReturnCode 3010 -Type softReboot
-        $returnCodes += New-IntuneWin32AppReturnCode -ReturnCode 1641 -Type hardReboot
-        $returnCodes += New-IntuneWin32AppReturnCode -ReturnCode 1618 -Type retry
-    }
+    # If $returnCodes is empty we simply omit -ReturnCode; the module applies its defaults alone.
     #endregion
 
     #region Upload
@@ -277,7 +297,9 @@ function Add-IntuneApplication {
         MaximumInstallationTimeInMinutes  = [int]$maxTime
         DetectionRule                     = $detectionRule
         RequirementRule                   = $requirementRule
-        ReturnCode                        = $returnCodes
+    }
+    if ($returnCodes.Count -gt 0) {
+        $appParams.ReturnCode = $returnCodes
     }
 
     if ($additionalRequirements.Count -gt 0) {
@@ -310,46 +332,30 @@ function Add-IntuneApplication {
     if ($asg -and $asg.Type -ne 'None') {
         Write-Host "  [*] Configuring assignment: $($asg.Type)..." -ForegroundColor Yellow
 
-        $intent  = $asg.Intent       ?? 'required'
-        $notif   = $asg.Notification ?? 'showAll'
+        $intent = $asg.Intent       ?? 'required'
+        $notif  = $asg.Notification ?? 'showAll'
 
-        # Resolve group ID if only a name was given
-        $groupId = $asg.GroupID
-        if ($asg.Type -eq 'Group' -and -not $groupId -and $asg.GroupName) {
-            Write-Host "    Resolving group: '$($asg.GroupName)'..." -ForegroundColor Gray
-            try {
-                $res = Invoke-TenantGraphRequest `
-                    -Url "https://graph.microsoft.com/v1.0/groups?`$filter=displayName eq '$($asg.GroupName)'&`$select=id,displayName" `
-                    -ClientID $ClientID -TenantID $TenantID
-                if ($res.value.Count -eq 1) {
-                    $groupId = $res.value[0].id
-                    Write-Host "    Resolved: $($res.value[0].displayName) ($groupId)" -ForegroundColor Gray
-                }
-                else {
-                    Write-Warning "Could not uniquely resolve group '$($asg.GroupName)' — skipping assignment."
-                }
+        # Build the list of groups to assign — supports new Groups array and old scalar GroupName/GroupID
+        $groupsToAssign = @()
+        if ($asg.Type -eq 'Group') {
+            if ($asg.Groups -and @($asg.Groups).Count -gt 0) {
+                $groupsToAssign = @($asg.Groups)
+            } elseif ($asg.GroupID -or $asg.GroupName) {
+                $groupsToAssign = @(@{ GroupName = $asg.GroupName ?? ''; GroupID = $asg.GroupID ?? '' })
             }
-            catch { Write-Warning "Group lookup failed: $_" }
         }
 
-        if ($asg.Type -eq 'Group' -and -not $groupId) {
-            Write-Warning "No group ID — assignment skipped. Assign manually in Intune."
-        }
-        else {
-            # Build the assignment target
-            $targetOdata = switch ($asg.Type) {
-                'AllDevices' { '#microsoft.graph.allDevicesAssignmentTarget' }
-                'AllUsers'   { '#microsoft.graph.allLicensedUsersAssignmentTarget' }
-                'Group'      { '#microsoft.graph.groupAssignmentTarget' }
-            }
+        # Helper: post one assignment body to Graph
+        function Invoke-PostAssignment {
+            param([string]$TargetOdata, [string]$GroupId, [string]$FilterID, [string]$FilterIntent)
             $target = [ordered]@{
-                '@odata.type'                                    = $targetOdata
-                'deviceAndAppManagementAssignmentFilterId'       = if ($asg.FilterID)     { $asg.FilterID }                    else { $null }
-                'deviceAndAppManagementAssignmentFilterType'     = if ($asg.FilterID)     { $asg.FilterIntent ?? 'include' }   else { 'none' }
+                '@odata.type'                                = $TargetOdata
+                'deviceAndAppManagementAssignmentFilterId'   = if ($FilterID) { $FilterID } else { $null }
+                'deviceAndAppManagementAssignmentFilterType' = if ($FilterID) { $FilterIntent ?? 'include' } else { 'none' }
             }
-            if ($asg.Type -eq 'Group') { $target['groupId'] = $groupId }
+            if ($GroupId) { $target['groupId'] = $GroupId }
 
-            $assignBody = [ordered]@{
+            $body = [ordered]@{
                 '@odata.type' = '#microsoft.graph.mobileAppAssignment'
                 'intent'      = $intent
                 'source'      = 'direct'
@@ -366,10 +372,61 @@ function Add-IntuneApplication {
             Invoke-TenantGraphRequest `
                 -Url    "https://graph.microsoft.com/v1.0/deviceAppManagement/mobileApps/$($intuneApp.id)/assignments" `
                 -Method POST `
-                -Body   $assignBody `
+                -Body   $body `
                 -ClientID $ClientID -TenantID $TenantID | Out-Null
+        }
 
-            Write-Host "  [OK] Assignment configured." -ForegroundColor Green
+        if ($asg.Type -in @('AllDevices','AllUsers')) {
+            $targetOdata = if ($asg.Type -eq 'AllDevices') {
+                '#microsoft.graph.allDevicesAssignmentTarget'
+            } else {
+                '#microsoft.graph.allLicensedUsersAssignmentTarget'
+            }
+            Invoke-PostAssignment -TargetOdata $targetOdata -GroupId $null `
+                -FilterID $asg.FilterID -FilterIntent $asg.FilterIntent
+            Write-Host "  [OK] Assignment configured: $($asg.Type)." -ForegroundColor Green
+        }
+        elseif ($asg.Type -eq 'Group') {
+            if ($groupsToAssign.Count -eq 0) {
+                Write-Warning "Assignment type is Group but no groups were specified — skipping."
+            } else {
+                $assignedCount = 0
+                foreach ($grp in $groupsToAssign) {
+                    $grpName = if ($grp -is [hashtable]) { $grp.GroupName ?? $grp.DisplayName ?? '' } else { $grp.GroupName ?? $grp.DisplayName ?? '' }
+                    $grpId   = if ($grp -is [hashtable]) { $grp.GroupID   ?? $grp.ID ?? '' }           else { $grp.GroupID   ?? $grp.ID ?? '' }
+
+                    # Resolve by name if only name was given
+                    if (-not $grpId -and $grpName) {
+                        Write-Host "    Resolving group: '$grpName'..." -ForegroundColor Gray
+                        try {
+                            $res = Invoke-TenantGraphRequest `
+                                -Url "https://graph.microsoft.com/v1.0/groups?`$filter=displayName eq '$grpName'&`$select=id,displayName" `
+                                -ClientID $ClientID -TenantID $TenantID
+                            if ($res.value.Count -eq 1) {
+                                $grpId = $res.value[0].id
+                                Write-Host "    Resolved: $($res.value[0].displayName) ($grpId)" -ForegroundColor Gray
+                            } else {
+                                Write-Warning "Could not uniquely resolve group '$grpName' — skipping."
+                                continue
+                            }
+                        }
+                        catch { Write-Warning "Group lookup failed for '$grpName': $_"; continue }
+                    }
+
+                    if (-not $grpId) {
+                        Write-Warning "No group ID for '$grpName' — skipping."
+                        continue
+                    }
+
+                    Invoke-PostAssignment -TargetOdata '#microsoft.graph.groupAssignmentTarget' -GroupId $grpId `
+                        -FilterID $asg.FilterID -FilterIntent $asg.FilterIntent
+                    Write-Host "  [OK] Assigned to group: $grpName ($grpId)." -ForegroundColor Green
+                    $assignedCount++
+                }
+                if ($assignedCount -gt 0) {
+                    Write-Host "  [OK] $assignedCount group assignment$(if($assignedCount -ne 1){'s'}) configured." -ForegroundColor Green
+                }
+            }
         }
     }
     #endregion

@@ -51,6 +51,9 @@ $privateScripts = @(
     'Private\New-AppDocumentation.ps1'
     'Private\Show-AppUploadForm.ps1'
     'Private\Show-BulkManager.ps1'
+    'Private\Show-GroupPicker.ps1'
+    'Private\Show-ReturnCodeEditor.ps1'
+    'Private\Show-TemplateEditor.ps1'
     'Private\Show-MainWindow.ps1'
 )
 

@@ -23,7 +23,11 @@ function Show-BulkManager {
         [string]$ToolRoot,
 
         [string[]]$AvailableCategories = @(),
-        [object[]]$AvailableFilters    = @()
+        [object[]]$AvailableFilters    = @(),
+
+        # Optional scriptblock called during bulk upload for main-window logging.
+        # Signature: param([string]$Text, [string]$Level)  Level = Info|OK|Warn|Fail
+        [scriptblock]$Logger = $null
     )
 
     Add-Type -AssemblyName PresentationFramework,PresentationCore,WindowsBase,System.Windows.Forms | Out-Null
@@ -174,7 +178,8 @@ function Show-BulkManager {
               RowBackground="White"
               BorderThickness="0"
               ColumnHeaderHeight="30"
-              RowHeight="28">
+              RowHeight="28"
+              AllowDrop="True">
 
       <DataGrid.ColumnHeaderStyle>
         <Style TargetType="DataGridColumnHeader">
@@ -204,27 +209,55 @@ function Show-BulkManager {
       <DataGrid.Columns>
 
         <!-- 0 — Source Folder (full path, editable) -->
-        <DataGridTextColumn Header="Source Folder" Binding="{Binding [SourceFolder]}"
-                            Width="160" MinWidth="100" SortMemberPath="SourceFolder">
-          <DataGridTextColumn.ElementStyle>
-            <Style TargetType="TextBlock">
-              <Setter Property="VerticalAlignment" Value="Center"/>
-              <Setter Property="Padding"           Value="6,0"/>
-              <Setter Property="TextTrimming"      Value="CharacterEllipsis"/>
-              <Setter Property="ToolTip"           Value="{Binding [SourceFolder]}"/>
-            </Style>
-          </DataGridTextColumn.ElementStyle>
-          <DataGridTextColumn.EditingElementStyle>
-            <Style TargetType="TextBox">
-              <Setter Property="VerticalAlignment" Value="Center"/>
-              <Setter Property="Padding"           Value="5,0"/>
-              <Setter Property="BorderThickness"   Value="0"/>
-              <Setter Property="Background"        Value="Transparent"/>
-            </Style>
-          </DataGridTextColumn.EditingElementStyle>
-        </DataGridTextColumn>
+        <DataGridTemplateColumn Header="Source Folder" Width="170" MinWidth="100" SortMemberPath="SourceFolder">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <TextBlock VerticalAlignment="Center" Padding="6,0" TextTrimming="CharacterEllipsis">
+                <TextBlock.Style>
+                  <Style TargetType="TextBlock">
+                    <Setter Property="Text"       Value="{Binding [SourceFolder]}"/>
+                    <Setter Property="ToolTip"    Value="{Binding [SourceFolder]}"/>
+                    <Setter Property="Foreground" Value="Black"/>
+                    <Style.Triggers>
+                      <DataTrigger Binding="{Binding [SourceFolder]}" Value="">
+                        <Setter Property="Text"       Value="e.g. D:\Apps\7-Zip\22.01  •  one app per folder"/>
+                        <Setter Property="Foreground" Value="#BBB"/>
+                        <Setter Property="FontStyle"  Value="Italic"/>
+                        <Setter Property="ToolTip"    Value="Enter the app's own folder — not a parent folder that contains multiple apps. All files in the folder are packaged together."/>
+                      </DataTrigger>
+                    </Style.Triggers>
+                  </Style>
+                </TextBlock.Style>
+              </TextBlock>
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+          <DataGridTemplateColumn.CellEditingTemplate>
+            <DataTemplate>
+              <TextBox Text="{Binding [SourceFolder], Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                       VerticalAlignment="Center" Padding="5,0" BorderThickness="0" Background="Transparent"/>
+            </DataTemplate>
+          </DataGridTemplateColumn.CellEditingTemplate>
+        </DataGridTemplateColumn>
 
-        <!-- 1 — Display Name -->
+        <!-- 1 — Template (ComboBox) — second column so the most important workflow choice is immediately visible -->
+        <DataGridTemplateColumn Header="Template" Width="120" MinWidth="80" SortMemberPath="Template">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <TextBlock Text="{Binding [Template]}" VerticalAlignment="Center" Padding="6,0"
+                         TextTrimming="CharacterEllipsis"/>
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+          <DataGridTemplateColumn.CellEditingTemplate>
+            <DataTemplate>
+              <ComboBox x:Name="CmbTemplate"
+                        SelectedItem="{Binding [Template], Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                        VerticalAlignment="Center" BorderThickness="0" Padding="4,0"
+                        Background="Transparent"/>
+            </DataTemplate>
+          </DataGridTemplateColumn.CellEditingTemplate>
+        </DataGridTemplateColumn>
+
+        <!-- 2 — Display Name -->
         <DataGridTextColumn Header="Display Name" Binding="{Binding [DisplayName]}"
                             Width="150" MinWidth="80" SortMemberPath="DisplayName">
           <DataGridTextColumn.ElementStyle>
@@ -346,24 +379,6 @@ function Show-BulkManager {
           </DataGridTextColumn.EditingElementStyle>
         </DataGridTextColumn>
 
-        <!-- 7 — Template (ComboBox) -->
-        <DataGridTemplateColumn Header="Template" Width="120" MinWidth="80" SortMemberPath="Template">
-          <DataGridTemplateColumn.CellTemplate>
-            <DataTemplate>
-              <TextBlock Text="{Binding [Template]}" VerticalAlignment="Center" Padding="6,0"
-                         TextTrimming="CharacterEllipsis"/>
-            </DataTemplate>
-          </DataGridTemplateColumn.CellTemplate>
-          <DataGridTemplateColumn.CellEditingTemplate>
-            <DataTemplate>
-              <ComboBox x:Name="CmbTemplate"
-                        SelectedItem="{Binding [Template], Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                        VerticalAlignment="Center" BorderThickness="0" Padding="4,0"
-                        Background="Transparent"/>
-            </DataTemplate>
-          </DataGridTemplateColumn.CellEditingTemplate>
-        </DataGridTemplateColumn>
-
         <!-- 8 — Category (ComboBox) -->
         <DataGridTemplateColumn Header="Category" Width="110" MinWidth="70" SortMemberPath="Category">
           <DataGridTemplateColumn.CellTemplate>
@@ -439,28 +454,7 @@ function Show-BulkManager {
           </DataGridTextColumn.EditingElementStyle>
         </DataGridTextColumn>
 
-        <!-- 12 — Logo Path -->
-        <DataGridTextColumn Header="Logo Path" Binding="{Binding [LogoPath]}"
-                            Width="100" MinWidth="60" SortMemberPath="LogoPath">
-          <DataGridTextColumn.ElementStyle>
-            <Style TargetType="TextBlock">
-              <Setter Property="VerticalAlignment" Value="Center"/>
-              <Setter Property="Padding"           Value="6,0"/>
-              <Setter Property="TextTrimming"      Value="CharacterEllipsis"/>
-              <Setter Property="ToolTip"           Value="{Binding [LogoPath]}"/>
-            </Style>
-          </DataGridTextColumn.ElementStyle>
-          <DataGridTextColumn.EditingElementStyle>
-            <Style TargetType="TextBox">
-              <Setter Property="VerticalAlignment" Value="Center"/>
-              <Setter Property="Padding"           Value="5,0"/>
-              <Setter Property="BorderThickness"   Value="0"/>
-              <Setter Property="Background"        Value="Transparent"/>
-            </Style>
-          </DataGridTextColumn.EditingElementStyle>
-        </DataGridTextColumn>
-
-        <!-- 13 — Info URL -->
+        <!-- 12 — Info URL -->
         <DataGridTextColumn Header="Info URL" Binding="{Binding [InformationURL]}"
                             Width="100" MinWidth="60" SortMemberPath="InformationURL">
           <DataGridTextColumn.ElementStyle>
@@ -481,7 +475,7 @@ function Show-BulkManager {
           </DataGridTextColumn.EditingElementStyle>
         </DataGridTextColumn>
 
-        <!-- 14 — Privacy URL -->
+        <!-- 13 — Privacy URL -->
         <DataGridTextColumn Header="Privacy URL" Binding="{Binding [PrivacyURL]}"
                             Width="100" MinWidth="60" SortMemberPath="PrivacyURL">
           <DataGridTextColumn.ElementStyle>
@@ -490,6 +484,31 @@ function Show-BulkManager {
               <Setter Property="Padding"           Value="6,0"/>
               <Setter Property="TextTrimming"      Value="CharacterEllipsis"/>
               <Setter Property="ToolTip"           Value="{Binding [PrivacyURL]}"/>
+            </Style>
+          </DataGridTextColumn.ElementStyle>
+          <DataGridTextColumn.EditingElementStyle>
+            <Style TargetType="TextBox">
+              <Setter Property="VerticalAlignment" Value="Center"/>
+              <Setter Property="Padding"           Value="5,0"/>
+              <Setter Property="BorderThickness"   Value="0"/>
+              <Setter Property="Background"        Value="Transparent"/>
+            </Style>
+          </DataGridTextColumn.EditingElementStyle>
+        </DataGridTextColumn>
+
+        <!-- 14 — Logo Path (drag an image file onto a row to auto-fill) -->
+        <DataGridTextColumn Width="100" MinWidth="60" SortMemberPath="LogoPath"
+                            Binding="{Binding [LogoPath]}">
+          <DataGridTextColumn.Header>
+            <TextBlock Text="Logo Path"
+                       ToolTip="PNG / JPG / JPEG — drag and drop an image file onto the row, or browse using the toolbar button."/>
+          </DataGridTextColumn.Header>
+          <DataGridTextColumn.ElementStyle>
+            <Style TargetType="TextBlock">
+              <Setter Property="VerticalAlignment" Value="Center"/>
+              <Setter Property="Padding"           Value="6,0"/>
+              <Setter Property="TextTrimming"      Value="CharacterEllipsis"/>
+              <Setter Property="ToolTip"           Value="{Binding [LogoPath]}"/>
             </Style>
           </DataGridTextColumn.ElementStyle>
           <DataGridTextColumn.EditingElementStyle>
@@ -536,7 +555,7 @@ function Show-BulkManager {
     <Border Grid.Row="3" Background="#F5F5F5" BorderBrush="#DDD" BorderThickness="0,1,0,0" Padding="14,5">
       <Grid>
         <TextBlock x:Name="TxtStatus" FontSize="11" Foreground="#555" VerticalAlignment="Center"
-                   Text="0 apps in queue  •  Click + Add Row to begin  •  Double-click a row for full configuration"/>
+                   Text="0 apps in queue  •  Click + Add Row to begin  •  Double-click a row for full config  •  Drag a logo image onto a row to set its logo"/>
         <TextBlock x:Name="TxtUploadResult" HorizontalAlignment="Right"
                    FontSize="11" FontWeight="SemiBold" Foreground="#4A2B8F" VerticalAlignment="Center"/>
       </Grid>
@@ -604,16 +623,30 @@ function Show-BulkManager {
     function Get-AssignmentSummary {
         param($Asg)
         if (-not $Asg) { return 'Not set' }
-        $a = if ($Asg -is [hashtable]) { $Asg } else {
-            $h = @{}; $Asg.PSObject.Properties | ForEach-Object { $h[$_.Name] = $_.Value }; $h
-        }
+        $a = if ($Asg -is [hashtable]) { $Asg }
+             elseif ($Asg -is [PSCustomObject]) {
+                 $h = @{}; $Asg.PSObject.Properties | ForEach-Object { $h[$_.Name] = $_.Value }; $h
+             } else { @{} }
         $intent = if ($a.Intent) { " — $($a.Intent)" } else { '' }
         switch ($a.Type) {
             'AllDevices' { "All Devices$intent" }
             'AllUsers'   { "All Users$intent" }
-            'Group'      { "Group: $($a.GroupName)$intent" }
-            'None'       { 'None' }
-            default      { $a.Type ?? 'Not set' }
+            'Group' {
+                # Support new Groups array and old scalar GroupName
+                if ($a.Groups -and @($a.Groups).Count -gt 0) {
+                    $names = @($a.Groups | ForEach-Object {
+                        if ($_ -is [hashtable]) { $_.GroupName ?? $_.GroupID ?? '?' }
+                        else { $_.GroupName ?? $_.GroupID ?? '?' }
+                    })
+                    $n = $names.Count
+                    if ($n -eq 1) { "Group: $($names[0])$intent" }
+                    else           { "$n Groups$intent" }
+                } else {
+                    "Group: $($a.GroupName ?? $a.GroupID ?? '?')$intent"
+                }
+            }
+            'None'  { 'None' }
+            default { $a.Type ?? 'Not set' }
         }
     }
 
@@ -642,7 +675,11 @@ function Show-BulkManager {
         $parts = @("$total app$plural in queue")
         if ($done)   { $parts += "$done done" }
         if ($failed) { $parts += "$failed failed" }
-        $parts += 'Double-click a row for full configuration'
+        if ($total -eq 0) {
+            $parts += 'Click + Add Row to begin'
+        }
+        $parts += 'Double-click a row for full config'
+        $parts += 'Drag a logo image onto a row to set it'
         $txtStatus.Text = $parts -join '  •  '
 
         $hasRows = $total -gt 0
@@ -915,6 +952,56 @@ function Show-BulkManager {
             $script:bmTable.DefaultView.Sort = '_RowIndex ASC'
         }
         # else: let WPF handle Ascending → Descending automatically
+    })
+
+    # ── Logo drag-and-drop ────────────────────────────────────────────────────
+    # Dragging an image file directly onto a row auto-fills the Logo Path column.
+    $bulkGrid.Add_DragOver({
+        param($s, $e)
+        $e.Effects = [System.Windows.DragDropEffects]::None
+        if ($e.Data.GetDataPresent([System.Windows.DataFormats]::FileDrop)) {
+            $files = @($e.Data.GetData([System.Windows.DataFormats]::FileDrop))
+            if (@($files | Where-Object { $_ -match '\.(png|jpg|jpeg|ico|bmp)$' }).Count -gt 0) {
+                $e.Effects = [System.Windows.DragDropEffects]::Copy
+            }
+        }
+        $e.Handled = $true
+    })
+
+    $bulkGrid.Add_Drop({
+        param($s, $e)
+        if (-not $e.Data.GetDataPresent([System.Windows.DataFormats]::FileDrop)) { return }
+        $imgFiles = @($e.Data.GetData([System.Windows.DataFormats]::FileDrop) |
+                      Where-Object { $_ -match '\.(png|jpg|jpeg|ico|bmp)$' })
+        if ($imgFiles.Count -eq 0) { return }
+        $logoFile = $imgFiles[0]
+
+        # Walk the hit-test result up to the DataGridRow that was dropped on
+        $dep = $e.OriginalSource -as [System.Windows.DependencyObject]
+        while ($dep -and $dep -isnot [System.Windows.Controls.DataGridRow]) {
+            $dep = [System.Windows.Media.VisualTreeHelper]::GetParent($dep)
+        }
+
+        $targetId = $null
+        if ($dep -is [System.Windows.Controls.DataGridRow]) {
+            $item = $dep.Item -as [System.Data.DataRowView]
+            if ($item) { $targetId = $item['_Id'] -as [string] }
+        }
+
+        # Fall back to the currently selected row if the drop landed on empty space
+        if (-not $targetId) {
+            $sel = $bulkGrid.SelectedItem -as [System.Data.DataRowView]
+            if ($sel) { $targetId = $sel['_Id'] -as [string] }
+        }
+
+        if ($targetId) {
+            $idx = Find-RowById -Id $targetId
+            if ($idx -ge 0) {
+                $script:bmRows[$idx].LogoPath = $logoFile
+                $dr = Find-DataRow -Id $targetId
+                if ($dr) { $dr['LogoPath'] = $logoFile }
+            }
+        }
     })
 
     # Sync bmRows when a cell is committed
@@ -1417,11 +1504,17 @@ function Show-BulkManager {
         $txtUploadResult.Text = ''
 
         $ok = 0; $fail = 0; $i = 0
+
+        if ($Logger) { & $Logger "─── Bulk upload started: $($toProcess.Count) app(s) ───" 'Info' }
+
         foreach ($row in $toProcess) {
             $i++
+            $appLabel = $row.DisplayName ?? $row.SourceFolder ?? "(row $i)"
             Update-RowStatus -Id $row._id -Status 'Uploading...'
-            $txtStatus.Text = "Uploading $i of $($toProcess.Count): $($row.DisplayName)…"
+            $txtStatus.Text = "Uploading $i of $($toProcess.Count): $appLabel…"
             $window.Dispatcher.Invoke([action]{}, 'Background')
+
+            if ($Logger) { & $Logger "[$i/$($toProcess.Count)] $appLabel" 'Info' }
 
             $appConfig = @{}
             foreach ($key in $row.Keys) {
@@ -1446,13 +1539,22 @@ function Show-BulkManager {
 
                 if ($result.Success) {
                     Update-RowStatus -Id $row._id -Status 'Done'; $ok++
+                    $appId = if ($result.App) { $result.App.id } else { '?' }
+                    if ($Logger) { & $Logger "  $appLabel — uploaded (ID: $appId)" 'OK' }
                 } else {
                     Update-RowStatus -Id $row._id -Status 'Failed'; $fail++
+                    if ($Logger) { & $Logger "  $appLabel — FAILED: $($result.Error)" 'Fail' }
                 }
             }
             catch {
                 Update-RowStatus -Id $row._id -Status 'Failed'; $fail++
+                if ($Logger) { & $Logger "  $appLabel — ERROR: $_" 'Fail' }
             }
+        }
+
+        if ($Logger) {
+            $lvl = if ($fail -gt 0) { 'Warn' } else { 'OK' }
+            & $Logger "─── Bulk upload complete: $ok succeeded, $fail failed ───" $lvl
         }
 
         Refresh-StatusBar

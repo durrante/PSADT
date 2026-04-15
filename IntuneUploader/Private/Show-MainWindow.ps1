@@ -455,12 +455,30 @@ function Show-MainWindow {
         Write-Log 'Opening Bulk Upload Manager...' 'Info'
         $txtFooter.Text = 'Bulk Upload Manager open'
 
+        # Capture UI controls so the logger closure can write to them after
+        # Show-BulkManager takes over the message loop.
+        $capturedLog      = $txtLog
+        $capturedScroller = $logScroller
+        $bulkLogger = {
+            param([string]$Text, [string]$Level)
+            $prefix = switch ($Level) {
+                'OK'   { '[OK]   ' }
+                'Warn' { '[WARN] ' }
+                'Fail' { '[FAIL] ' }
+                default{ '[INFO] ' }
+            }
+            $line = "$(Get-Date -Format 'HH:mm:ss')  $prefix $Text`n"
+            $capturedLog.AppendText($line)
+            $capturedScroller.ScrollToEnd()
+        }.GetNewClosure()
+
         Show-BulkManager `
             -Config              $Config `
             -TemplateFolder      $TemplateFolder `
             -ToolRoot            $ToolRoot `
             -AvailableCategories $script:availableCategories `
-            -AvailableFilters    $script:availableFilters
+            -AvailableFilters    $script:availableFilters `
+            -Logger              $bulkLogger
 
         $txtFooter.Text = 'Ready'
         Write-Log 'Bulk Upload Manager closed.' 'Info'
@@ -471,25 +489,11 @@ function Show-MainWindow {
     #region Templates
 
     $btnTemplates.Add_Click({
-        $tplFiles = Get-ChildItem -Path $TemplateFolder -Filter '*.json' -ErrorAction SilentlyContinue
-        if (-not $tplFiles) {
-            [System.Windows.MessageBox]::Show("No templates found in:`n$TemplateFolder", 'Templates', 'OK', 'Information')
-            return
-        }
-
-        $list = $tplFiles | ForEach-Object {
-            try {
-                $d = Get-Content $_.FullName -Raw | ConvertFrom-Json
-                "$($_.BaseName.PadRight(25))  $($d.Description ?? '(no description)')"
-            }
-            catch { "$($_.BaseName.PadRight(25))  (invalid JSON)" }
-        }
-
-        $msg = "Available templates in:`n$TemplateFolder`n`n" + ($list -join "`n") + `
-               "`n`nTo create a new template: copy an existing .json file and edit it.`n" + `
-               "To use a template: select it in the Upload form's Packaging section."
-
-        [System.Windows.MessageBox]::Show($msg, 'Templates', 'OK', 'Information')
+        Write-Log 'Opening Template Editor...' 'Info'
+        Show-TemplateEditor `
+            -TemplateFolder   $TemplateFolder `
+            -AvailableFilters $script:availableFilters
+        Write-Log 'Template Editor closed.' 'Info'
     })
 
     #endregion

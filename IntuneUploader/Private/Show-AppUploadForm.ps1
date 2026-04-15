@@ -286,12 +286,28 @@ function Show-AppUploadForm {
               </ComboBox>
               <Label Content="Restart" Grid.Column="2" Padding="12,0,6,0"/>
               <ComboBox x:Name="CmbRestart" Grid.Column="3" SelectedIndex="0">
-                <ComboBoxItem Content="suppress"/>
-                <ComboBoxItem Content="allow"/>
-                <ComboBoxItem Content="basedOnReturnCode"/>
-                <ComboBoxItem Content="force"/>
+                <ComboBoxItem Content="No specific action"                          Tag="suppress"/>
+                <ComboBoxItem Content="App install may force a device restart"      Tag="allow"/>
+                <ComboBoxItem Content="Determine behavior based on return codes"    Tag="basedOnReturnCode"/>
+                <ComboBoxItem Content="Intune will force a mandatory device restart" Tag="force"/>
               </ComboBox>
             </Grid>
+
+            <Separator Margin="0,14,0,10"/>
+            <Grid Style="{StaticResource FieldRow}">
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+              </Grid.ColumnDefinitions>
+              <StackPanel Grid.Column="0">
+                <TextBlock Style="{StaticResource SectionHeader}" Margin="0,0,0,2" Text="Return Codes"/>
+                <TextBlock x:Name="TxtRCStatus" Foreground="#666" FontSize="11"
+                           Text="5 codes (defaults)"/>
+              </StackPanel>
+              <Button x:Name="BtnReturnCodes" Grid.Column="1" Content="Edit Return Codes..."
+                      Padding="10,5" VerticalAlignment="Center"/>
+            </Grid>
+
           </StackPanel>
         </ScrollViewer>
       </TabItem>
@@ -699,19 +715,39 @@ function Show-AppUploadForm {
               <RadioButton x:Name="RdoAsgNone"       Content="No assignment now (configure manually in Intune)"/>
             </StackPanel>
 
-            <Grid x:Name="PanelGroupSearch" Visibility="Collapsed" Style="{StaticResource FieldRow}">
-              <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="130"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-              </Grid.ColumnDefinitions>
-              <Label Content="Group name / GUID" Grid.Column="0"/>
-              <TextBox x:Name="TxtGroupName" Grid.Column="1"
-                       ToolTip="Enter display name or GUID. Name will be resolved at upload time."/>
-              <Button x:Name="BtnSearchGroup" Content="Search" Grid.Column="2" Margin="6,0,0,0" Padding="8,3" MinWidth="0"/>
-            </Grid>
-            <TextBlock x:Name="TxtGroupResult" Margin="130,2,0,6" Foreground="#666"
-                       FontSize="11" Visibility="Collapsed" TextWrapping="Wrap"/>
+            <!-- Multi-group panel — shown only when Group is selected -->
+            <Border x:Name="PanelGroupSearch" Visibility="Collapsed"
+                    Background="#F5F0FF" BorderBrush="#CCC" BorderThickness="1"
+                    CornerRadius="3" Padding="10" Margin="0,4,0,8">
+              <StackPanel>
+                <Grid Margin="0,0,0,6">
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                  </Grid.ColumnDefinitions>
+                  <TextBlock Grid.Column="0" FontWeight="SemiBold" FontSize="12"
+                             VerticalAlignment="Center" Text="Selected Groups"/>
+                  <Button x:Name="BtnSearchGroup" Grid.Column="1"
+                          Content="Search / Add Groups..." Padding="10,4" MinWidth="0"/>
+                </Grid>
+                <ListBox x:Name="LstFormGroups" MinHeight="60" MaxHeight="140"
+                         BorderBrush="#CCC" BorderThickness="1" Background="White"
+                         ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                  <ListBox.ItemTemplate>
+                    <DataTemplate>
+                      <StackPanel Margin="2">
+                        <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" FontSize="12"/>
+                        <TextBlock Text="{Binding ID}" FontSize="10" Foreground="#888" FontFamily="Consolas"/>
+                      </StackPanel>
+                    </DataTemplate>
+                  </ListBox.ItemTemplate>
+                </ListBox>
+                <TextBlock FontSize="10" Foreground="#777" Margin="0,4,0,0"
+                           Text="Sign in from the main window to search by name. You can also add groups by Object ID via the picker."/>
+                <Button x:Name="BtnRemoveFormGroup" Content="Remove Selected"
+                        HorizontalAlignment="Left" Padding="8,3" Margin="0,6,0,0" MinWidth="0"/>
+              </StackPanel>
+            </Border>
 
             <TextBlock Style="{StaticResource SectionHeader}" Text="Options" Margin="0,8,0,4"/>
             <Grid Style="{StaticResource FieldRow}">
@@ -919,9 +955,11 @@ function Show-AppUploadForm {
     $rdoAsgGroup         = Find 'RdoAsgGroup'
     $rdoAsgNone          = Find 'RdoAsgNone'
     $panelGroupSearch    = Find 'PanelGroupSearch'
-    $txtGroupName        = Find 'TxtGroupName'
+    $lstFormGroups       = Find 'LstFormGroups'
     $btnSearchGroup      = Find 'BtnSearchGroup'
-    $txtGroupResult      = Find 'TxtGroupResult'
+    $btnRemoveFormGroup  = Find 'BtnRemoveFormGroup'
+    $btnReturnCodes      = Find 'BtnReturnCodes'
+    $txtRCStatus         = Find 'TxtRCStatus'
     $cmbIntent           = Find 'CmbIntent'
     $cmbNotification     = Find 'CmbNotification'
     $cmbAssignFilter     = Find 'CmbAssignFilter'
@@ -941,10 +979,18 @@ function Show-AppUploadForm {
     #endregion
 
     #region Script-level state
-    $script:isPSADT        = $false
-    $script:psadtMeta      = $null
-    $script:resolvedGroupId = $null
+    $script:isPSADT          = $false
+    $script:psadtMeta        = $null
     $script:requirementRules = [System.Collections.Generic.List[hashtable]]::new()
+    $script:formGroups       = [System.Collections.ObjectModel.ObservableCollection[object]]::new()
+    $script:formReturnCodes  = @(
+        @{ ReturnCode = 0;    Type = 'success'    }
+        @{ ReturnCode = 1707; Type = 'success'    }
+        @{ ReturnCode = 3010; Type = 'softReboot' }
+        @{ ReturnCode = 1641; Type = 'hardReboot' }
+        @{ ReturnCode = 1618; Type = 'retry'      }
+    )
+    $lstFormGroups.ItemsSource = $script:formGroups
     #endregion
 
     #region Populate static data
@@ -1234,18 +1280,11 @@ function Show-AppUploadForm {
 
     $btnReqAddCancel.Add_Click({ $panelAddReqRule.Visibility = 'Collapsed' })
 
-    # Assignment — clear group search result whenever switching away from Group
+    # Assignment — show/hide groups panel
     $rdoAsgGroup.Add_Checked({ $panelGroupSearch.Visibility = 'Visible' })
-
-    $clearGroup = {
-        $panelGroupSearch.Visibility   = 'Collapsed'
-        $txtGroupResult.Text           = ''
-        $txtGroupResult.Visibility     = 'Collapsed'
-        $script:resolvedGroupId        = $null
-    }
-    $rdoAsgAllDevices.Add_Checked($clearGroup)
-    $rdoAsgAllUsers.Add_Checked($clearGroup)
-    $rdoAsgNone.Add_Checked($clearGroup)
+    $rdoAsgAllDevices.Add_Checked({ $panelGroupSearch.Visibility = 'Collapsed' })
+    $rdoAsgAllUsers.Add_Checked({   $panelGroupSearch.Visibility = 'Collapsed' })
+    $rdoAsgNone.Add_Checked({       $panelGroupSearch.Visibility = 'Collapsed' })
 
     # Enable filter intent when a filter is selected
     $cmbAssignFilter.Add_SelectionChanged({
@@ -1254,41 +1293,31 @@ function Show-AppUploadForm {
         $cmbFilterIntent.IsEnabled = $hasFilter
     })
 
-    # Group search — uses Invoke-TenantGraphRequest
+    # Group picker — open Show-GroupPicker with current selection pre-loaded
     $btnSearchGroup.Add_Click({
-        $name = $txtGroupName.Text.Trim()
-        if (-not $name) { return }
-        $txtGroupResult.Text = 'Searching...'
-        $txtGroupResult.Visibility = 'Visible'
-        $txtGroupResult.Foreground = [System.Windows.Media.Brushes]::Gray
-
-        try {
-            $clientId = if ($Config) { $Config.ClientID } else { '' }
-            $tenantId = if ($Config) { $Config.TenantID } else { '' }
-
-            $url = "https://graph.microsoft.com/v1.0/groups?`$filter=displayName eq '$([System.Uri]::EscapeDataString($name))'&`$select=id,displayName"
-            $res     = Invoke-TenantGraphRequest -Url $url -ClientID $clientId -TenantID $tenantId
-
-            if ($res.value.Count -eq 1) {
-                $script:resolvedGroupId = $res.value[0].id
-                $txtGroupResult.Foreground = [System.Windows.Media.Brushes]::Green
-                $txtGroupResult.Text = "Found: $($res.value[0].displayName)  ($($res.value[0].id))"
-            }
-            elseif ($res.value.Count -gt 1) {
-                $script:resolvedGroupId = $null
-                $txtGroupResult.Foreground = [System.Windows.Media.Brushes]::OrangeRed
-                $txtGroupResult.Text = "$($res.value.Count) groups matched — use a more specific name or enter the GUID directly"
-            }
-            else {
-                $script:resolvedGroupId = $null
-                $txtGroupResult.Foreground = [System.Windows.Media.Brushes]::Red
-                $txtGroupResult.Text = 'No group found with that display name'
+        $already = @($script:formGroups | ForEach-Object { @{ GroupName = $_.DisplayName; GroupID = $_.ID } })
+        $picked = Show-GroupPicker -AlreadySelected $already
+        if ($null -ne $picked) {
+            $script:formGroups.Clear()
+            foreach ($g in $picked) {
+                $script:formGroups.Add([PSCustomObject]@{ DisplayName = $g.GroupName; ID = $g.GroupID }) | Out-Null
             }
         }
-        catch {
-            $script:resolvedGroupId = $null
-            $txtGroupResult.Foreground = [System.Windows.Media.Brushes]::Red
-            $txtGroupResult.Text = "Search failed: $_"
+    })
+
+    # Remove selected group from list
+    $btnRemoveFormGroup.Add_Click({
+        $sel = $lstFormGroups.SelectedItem
+        if ($sel) { $script:formGroups.Remove($sel) | Out-Null }
+    })
+
+    # Return codes editor
+    $btnReturnCodes.Add_Click({
+        $result = Show-ReturnCodeEditor -CurrentCodes $script:formReturnCodes
+        if ($null -ne $result) {
+            $script:formReturnCodes = @($result)
+            $n = $script:formReturnCodes.Count
+            $txtRCStatus.Text = "$n return code$(if($n -ne 1){'s'})"
         }
     })
 
@@ -1365,12 +1394,12 @@ function Show-AppUploadForm {
                    elseif ($rdoAsgAllUsers.IsChecked) { 'AllUsers' }
                    elseif ($rdoAsgGroup.IsChecked)    { 'Group' }
                    else                                { 'None' }
+        $groupsArr = @($script:formGroups | ForEach-Object { @{ GroupName = $_.DisplayName; GroupID = $_.ID } })
         $assignment = @{
             Type         = $asgType
             Intent       = $cmbIntent.SelectedItem.Content
             Notification = $cmbNotification.SelectedItem.Content
-            GroupName    = $txtGroupName.Text
-            GroupID      = $script:resolvedGroupId
+            Groups       = if ($asgType -eq 'Group') { $groupsArr } else { @() }
         }
 
         # Filter
@@ -1399,7 +1428,7 @@ function Show-AppUploadForm {
             InstallCommandLine       = $txtInstallCmd.Text
             UninstallCommandLine     = $txtUninstallCmd.Text
             InstallExperience        = $cmbInstallExp.SelectedItem.Content
-            RestartBehavior          = $cmbRestart.SelectedItem.Content
+            RestartBehavior          = $cmbRestart.SelectedItem.Tag ?? $cmbRestart.SelectedItem.Content
             Template                 = $cmbTemplate.SelectedItem
             LogoPath                 = $txtLogo.Text
             OutputFolder             = $txtOutput.Text
@@ -1407,6 +1436,7 @@ function Show-AppUploadForm {
             Architecture             = $archValue
             MinimumSupportedWindowsRelease = $cmbMinOS.SelectedItem.Content
             AdditionalRequirementRules = ($script:requirementRules | ForEach-Object { $_ })
+            ReturnCodes              = $script:formReturnCodes
             Assignment               = $assignment
         }
 
@@ -1536,12 +1566,18 @@ function Show-AppUploadForm {
                 'AllUsers'   { $rdoAsgAllUsers.IsChecked   = $true }
                 'Group' {
                     $rdoAsgGroup.IsChecked = $true
-                    $txtGroupName.Text     = $a.GroupName
-                    if ($a.GroupID) {
-                        $script:resolvedGroupId    = $a.GroupID
-                        $txtGroupResult.Text       = "Pre-loaded: $($a.GroupName) ($($a.GroupID))"
-                        $txtGroupResult.Visibility = 'Visible'
-                        $txtGroupResult.Foreground = [System.Windows.Media.Brushes]::Green
+                    # Load groups — support new Groups array and old GroupName/GroupID scalar
+                    $script:formGroups.Clear()
+                    $grpsToLoad = @()
+                    if ($a.Groups -and @($a.Groups).Count -gt 0) {
+                        $grpsToLoad = @($a.Groups)
+                    } elseif ($a.GroupID) {
+                        $grpsToLoad = @(@{ GroupName = $a.GroupName ?? ''; GroupID = $a.GroupID })
+                    }
+                    foreach ($g in $grpsToLoad) {
+                        $gName = if ($g -is [hashtable]) { $g.GroupName ?? $g.DisplayName ?? '' } else { $g.GroupName ?? $g.DisplayName ?? '' }
+                        $gID   = if ($g -is [hashtable]) { $g.GroupID   ?? $g.ID ?? '' }           else { $g.GroupID   ?? $g.ID ?? '' }
+                        if ($gID) { $script:formGroups.Add([PSCustomObject]@{ DisplayName = $gName; ID = $gID }) | Out-Null }
                     }
                 }
                 'None' { $rdoAsgNone.IsChecked = $true }
@@ -1559,6 +1595,15 @@ function Show-AppUploadForm {
                 $fMap = @{ include=0; exclude=1 }
                 if ($a.FilterIntent -and $fMap.ContainsKey($a.FilterIntent)) { $cmbFilterIntent.SelectedIndex = $fMap[$a.FilterIntent] }
             }
+        }
+
+        # ── Return codes ──
+        if ($p.ReturnCodes -and @($p.ReturnCodes).Count -gt 0) {
+            $script:formReturnCodes = @($p.ReturnCodes | ForEach-Object {
+                if ($_ -is [PSCustomObject]) { @{ ReturnCode = [int]$_.ReturnCode; Type = [string]$_.Type } } else { $_ }
+            })
+            $n = $script:formReturnCodes.Count
+            $txtRCStatus.Text = "$n return code$(if($n -ne 1){'s'})"
         }
 
         # ── Categories ──
