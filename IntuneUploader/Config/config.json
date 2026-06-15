@@ -1,9 +1,0 @@
-{
-  "AuthMethod": "MicrosoftGraphCLI",
-  "TenantID": "5b1849e9-3608-4306-99bd-7435a0f2620c",
-  "ClientID": "14d82eec-204b-4c2f-b7e8-296a70dab67e",
-  "DefaultOutputPath": "C:\\Users\\me\\Downloads\\IntunePackage",
-  "DocumentationPath": "C:\\Users\\me\\Downloads\\IntuneDocs",
-  "IntuneWinAppUtilPath": "D:\\OneDrive\\OneDrive - Alexdu\\Documents\\GitHub\\PSADT\\IntuneUploader\\Tools\\IntuneWinAppUtil.exe",
-  "DefaultTemplate": "PSADT-Default"
-}

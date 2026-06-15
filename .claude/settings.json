@@ -18,12 +18,27 @@
       "Bash(where pwsh:*)",
       "Bash(pwsh -NoProfile -Command ':*)",
       "Bash(powershell.exe -NoProfile -Command 'Get-ChildItem -Path '\\\\''D:\\\\OneDrive\\\\OneDrive - Alexdu\\\\Documents\\\\WindowsPowerShell\\\\Modules\\\\IntuneWin32App\\\\1.3.5'\\\\'' -Recurse -Include '\\\\''*.ps1'\\\\'' | ForEach-Object { Select-String -Path $_.FullName -Pattern '\\\\''Parse'\\\\'' | ForEach-Object { '\\\\''$\\($_.Filename\\):$\\($_.LineNumber\\): $\\($_.Line.Trim\\(\\)\\)'\\\\'' } }')",
-      "Read(//d/OneDrive/OneDrive - Alexdu/Documents/PowerShell/Modules/IntuneWin32App/1.5.0/**)"
+      "Read(//d/OneDrive/OneDrive - Alexdu/Documents/PowerShell/Modules/IntuneWin32App/1.5.0/**)",
+      "Bash(grep -n 'rdoAsgAllDevices\\\\|IsChecked = $true\\\\|rdoAsgAllDevices.IsChecked' IntuneUploader/Private/Show-AppUploadForm.ps1)",
+      "Read(//c/Users/**)",
+      "Bash(xxd)",
+      "Bash(git -C \"d:/OneDrive/OneDrive - Alexdu/Documents/GitHub/PSADT\" status --short)",
+      "Bash(gh --version)",
+      "Bash(git -C \"d:/OneDrive/OneDrive - Alexdu/Documents/GitHub/PSADT/Win32Forge\" branch)",
+      "Read(//d/OneDrive/OneDrive - Alexdu/Work/M365/Intune/**)",
+      "Bash(pwsh -Command \"[Convert]::ToBase64String\\([System.IO.File]::ReadAllBytes\\('d:/OneDrive/OneDrive - Alexdu/Documents/GitHub/PSADT/Win32Forge/Assets/logo.png'\\)\\)\")",
+      "Bash(pwsh -Command ' *)",
+      "Bash(pwsh -NonInteractive -Command ' *)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)"
     ],
     "additionalDirectories": [
       "D:\\OneDrive\\OneDrive - Alexdu\\Documents\\WindowsPowerShell\\Modules\\IntuneWin32App\\1.3.5\\Private",
       "D:\\OneDrive\\OneDrive - Alexdu\\Documents\\PowerShell\\Modules\\IntuneWin32App\\1.5.0\\Private",
-      "D:\\OneDrive\\OneDrive - Alexdu\\Documents\\PowerShell\\Modules\\IntuneWin32App\\1.5.0\\Public"
+      "D:\\OneDrive\\OneDrive - Alexdu\\Documents\\PowerShell\\Modules\\IntuneWin32App\\1.5.0\\Public",
+      "d:\\GitHub",
+      "D:\\OneDrive\\OneDrive - Alexdu\\Work\\M365\\Intune\\Win32Forge"
     ]
   }
 }
