@@ -1,0 +1,23 @@
+Description:
+**Note:** This package installs the latest version of the application available at the time of installation. It does not automatically keep the application updated after installation.
+
+**Microsoft OneDrive** is a cloud storage and file synchronisation client developed by Microsoft. It synchronises files between a user's Windows device and their OneDrive or SharePoint Online storage in Microsoft 365.
+
+## Key Features
+
+* File synchronisation between local folders and OneDrive for Business or personal OneDrive storage
+* Known Folder Move (KFM) for redirecting Desktop, Documents, and Pictures to OneDrive
+* Files On-Demand to access cloud files without downloading them locally
+* Co-authoring support for Microsoft 365 files
+* Version history and recycle bin for file recovery
+* Per-file and per-folder sharing controls
+* Personal Vault for sensitive files with additional authentication
+* Admin controls via Group Policy and Intune configuration profiles
+
+OneDrive is deployed in Microsoft 365 environments as the primary file sync client, often replacing legacy folder redirection solutions.
+
+URL:
+https://www.microsoft.com/en-gb/microsoft-365/onedrive/onedrive-for-business
+
+Privacy URL:
+https://privacy.microsoft.com/en-gb/privacystatement

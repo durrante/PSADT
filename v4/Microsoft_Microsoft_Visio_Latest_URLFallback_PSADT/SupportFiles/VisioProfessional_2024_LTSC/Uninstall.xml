@@ -1,0 +1,10 @@
+<Configuration>
+  <Info Description="Microsoft Visio Professional Uninstall" />
+  <Remove All="FALSE">
+    <Product ID="VisioPro2024Volume" >
+    </Product>
+  </Remove>
+  <Display Level="None" AcceptEULA="TRUE" />
+  <Logging Level="Standard" path="C:\Windows\Temp\" />
+  <Property Name="FORCEAPPSHUTDOWN" Value="TRUE"/>
+</Configuration>

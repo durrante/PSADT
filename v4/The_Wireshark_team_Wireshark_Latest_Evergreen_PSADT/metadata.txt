@@ -1,0 +1,27 @@
+Description:
+**Note:** This package installs the latest version of the application available at the time of installation. It does not automatically keep the application updated after installation.
+
+**Wireshark** is a free, open-source network protocol analyser developed by the Wireshark team. It is used by network engineers, security analysts, and IT administrators to capture and inspect network traffic at a packet level.
+
+## Key Features
+
+* Live packet capture from network interfaces including Ethernet, Wi-Fi, and loopback
+* Deep protocol dissection for hundreds of network protocols
+* Display filters for isolating specific traffic by protocol, address, port, or content
+* Colour coding rules for visual identification of traffic types and anomalies
+* Capture file import and export in a wide range of formats including PCAP and PCAPNG
+* Follow TCP/UDP stream for reassembled application-layer conversation view
+* Statistics and IO graphs for traffic analysis
+* Decryption support for TLS, WPA2, and other encrypted protocols (with key material)
+
+Wireshark is deployed in IT and security teams for network troubleshooting, performance analysis, and security investigations.
+
+> **Important - Npcap requirement:** [Npcap](https://npcap.com/) is required by Wireshark in order to capture live network traffic. Npcap does not support silent installation outside of the OEM package and therefore **must be installed manually** by visiting [https://npcap.com/](https://npcap.com/).
+>
+> If you require assistance with this, please log a ticket and an engineer will be able to help you.
+
+URL:
+https://www.wireshark.org/
+
+Privacy URL:
+https://www.wireshark.org/privacy.html

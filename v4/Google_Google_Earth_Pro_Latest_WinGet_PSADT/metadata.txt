@@ -1,0 +1,23 @@
+Description:
+**Note:** This package installs the latest version of the application available at the time of installation. It does not automatically keep the application updated after installation.
+
+**Google Earth Pro** is a desktop geographic visualisation application developed by Google. It provides access to satellite imagery, aerial photography, terrain data, and 3D building models for locations around the world.
+
+## Key Features
+
+* High-resolution satellite and aerial imagery
+* 3D terrain and building visualisation
+* Historical imagery timeline for viewing how locations have changed over time
+* Import and export of GIS data formats including KML/KMZ, shapefiles, and GeoTIFF
+* Measurement tools for distances, areas, and paths on the globe
+* Movie and image export for presentations and reports
+* GPS data import for tracking and route display
+* Print maps at high resolution
+
+Google Earth Pro is the desktop edition of Google Earth, providing additional data import, measurement, and export capabilities beyond the consumer web and mobile versions. It is available free of charge.
+
+URL:
+https://www.google.com/earth/about/versions/
+
+Privacy URL:
+https://policies.google.com/privacy

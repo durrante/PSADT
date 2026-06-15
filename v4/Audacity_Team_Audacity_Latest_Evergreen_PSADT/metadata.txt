@@ -1,0 +1,22 @@
+Description:
+**Note:** This package installs the latest version of the application available at the time of installation. It does not automatically keep the application updated after installation.
+
+**Audacity** is a free, open-source audio editor and recorder developed by the Audacity Team. It is widely used for recording, editing, and processing audio on Windows, macOS, and Linux.
+
+## Key Features
+
+* Multi-track audio recording and editing
+* Import and export of a wide range of audio formats including MP3, WAV, FLAC, OGG, and AIFF
+* Non-destructive editing with unlimited undo history
+* Built-in effects including noise reduction, equalisation, compression, and normalisation
+* Support for VST, LV2, and AU plugins
+* Spectrogram view for frequency analysis
+* Batch processing via macros
+
+Audacity is used in environments such as education, podcasting, voice recording, and basic audio post-production.
+
+URL:
+https://www.audacityteam.org/
+
+Privacy URL:
+https://www.audacityteam.org/about/privacy-policy/

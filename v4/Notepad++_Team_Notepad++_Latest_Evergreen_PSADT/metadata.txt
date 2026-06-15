@@ -1,0 +1,24 @@
+Description:
+**Note:** This package installs the latest version of the application available at the time of installation. It does not automatically keep the application updated after installation.
+
+**Notepad++** is a free, open-source text and source code editor for Windows, developed by the Notepad++ Team. It is widely used as a replacement for the Windows Notepad application and for light-to-medium code editing tasks.
+
+## Key Features
+
+* Syntax highlighting for over 80 programming and scripting languages
+* Tabbed document interface for working with multiple files simultaneously
+* Auto-completion and function parameter hints
+* Multi-document and multi-view editing
+* Find and replace with regular expression support
+* Macro recording and playback
+* Plugin architecture with a large library of community plugins
+* Lightweight with a small installation footprint
+* Supports multiple encodings including UTF-8, UTF-16, and ANSI
+
+Notepad++ is commonly deployed in IT and developer environments as a general-purpose text editor for scripts, configuration files, and code.
+
+URL:
+https://notepad-plus-plus.org/
+
+Privacy URL:
+https://notepad-plus-plus.org/privacy/

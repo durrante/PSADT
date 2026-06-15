@@ -1,0 +1,23 @@
+Description:
+**Note:** This package installs the latest version of the application available at the time of installation. It does not automatically keep the application updated after installation.
+
+**ShareX** is a free, open-source screen capture and productivity tool for Windows, developed by the ShareX Team. It provides a wide range of capture methods, annotation tools, and upload destinations.
+
+## Key Features
+
+* Flexible screen capture including full screen, region, window, scrolling capture, and screen recording
+* Annotation tools including arrows, text, shapes, blur/pixelate, and highlighting
+* Built-in image editor for post-capture editing
+* Optical character recognition (OCR) to extract text from captured images
+* URL shortening, file sharing, and upload to a wide range of destinations (Imgur, Dropbox, FTP, custom)
+* Colour picker, ruler, and other screen utility tools
+* Task-based workflow automation with hotkey triggers
+* No advertising or bundled software
+
+ShareX is used in IT and support environments for documentation, creating annotated screenshots, and screen recording.
+
+URL:
+https://getsharex.com/
+
+Privacy URL:
+https://getsharex.com/privacy-policy

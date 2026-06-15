@@ -1,0 +1,26 @@
+Description:
+**Note:** This package installs the latest version of the application available at the time of installation. It does not automatically keep the application updated after installation.
+
+**Microsoft Visio** is a diagramming and vector graphics application developed by Microsoft. It is used for creating flowcharts, network diagrams, org charts, floor plans, and other business and technical diagrams.
+
+## Key Features
+
+* Extensive shape libraries covering IT, network, business process, engineering, and floor plan diagram types
+* BPMN (Business Process Model and Notation) and UML support
+* Integration with Microsoft 365 data sources for data-linked diagrams
+* Collaboration features including co-authoring and commenting
+* Import and export of Visio (VSDX), SVG, PDF, and AutoCAD formats
+* Templates for common diagram types to accelerate diagram creation
+* Publish diagrams to SharePoint or Teams for browser-based viewing
+
+Visio is deployed in organisations for technical documentation, process mapping, and organisational chart maintenance.
+
+> **Licensing note:** A **Microsoft Visio Plan 2** licence must be assigned to the user *before* installing this software. Without a qualifying licence the application will not activate. Please ensure your licence is in place prior to installation.
+
+> **Important:** All Microsoft 365 applications (Word, Excel, Outlook, Teams, etc.) must be closed before installation can proceed. Please save and close all open work before running this installer.
+
+URL:
+https://www.microsoft.com/en-gb/microsoft-365/visio/flowchart-software
+
+Privacy URL:
+https://privacy.microsoft.com/en-gb/privacystatement

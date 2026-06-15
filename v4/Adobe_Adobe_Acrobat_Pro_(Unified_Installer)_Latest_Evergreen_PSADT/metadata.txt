@@ -1,0 +1,24 @@
+Description:
+**Note:** This package installs the latest version of the application available at the time of installation. It does not automatically keep the application updated after installation.
+
+**Adobe Acrobat Pro** is a professional PDF authoring and management application published by Adobe Inc. It is used across business, government, and education sectors for creating, editing, reviewing, and securing PDF documents.
+
+## Key Features
+
+* Create, edit, and export PDF documents
+* OCR (optical character recognition) for scanned documents
+* Electronic signatures and digital signing workflows
+* Form creation and data collection
+* Document redaction and protection
+* Integration with Microsoft 365 and cloud storage services
+* Comment, review, and approval workflows
+
+Acrobat Pro is the standard tool for organisations that require full PDF editing capabilities beyond what free or reader-only applications provide.
+
+> **Licensing note:** This package installs the Adobe Acrobat Pro unified installer. To access Pro features, users must sign in with an Adobe account that is assigned an Acrobat Pro licence. Users without a licence will still be able to use the application in a read-only capacity, equivalent to Adobe Acrobat Reader.
+
+URL:
+https://www.adobe.com/acrobat/acrobat-pro.html
+
+Privacy URL:
+https://www.adobe.com/privacy/policy.html

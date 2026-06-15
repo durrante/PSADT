@@ -1,0 +1,19 @@
+Description:
+**Gemalto Web Signer for Barclays** is a client-side digital signing component developed by Gemalto (now part of Thales Group) for use with Barclays banking web applications. It enables hardware-backed digital signatures and strong authentication within browser-based workflows.
+
+## Key Features
+
+* Hardware-based digital signing using smart cards or USB tokens
+* PIN-based authentication providing an additional security layer over software-only solutions
+* Signs documents and transaction data presented by Barclays web applications
+* Verifies the authenticity of signatories
+* Supports document encryption and decryption
+* Available as a browser extension for Chrome, Firefox, and Microsoft Edge
+
+The software is deployed on machines belonging to users who require digital signature capabilities when interacting with Barclays corporate banking or trade finance portals.
+
+URL:
+https://chromewebstore.google.com/detail/gemalto-web-signer-for-ba/akfldeakecjegioiiajhpjpekomdjnmh
+
+Privacy URL:
+https://www.thalesgroup.com/en/privacy-statement-cookies

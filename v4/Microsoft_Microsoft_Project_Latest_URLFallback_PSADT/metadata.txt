@@ -1,0 +1,27 @@
+Description:
+**Note:** This package installs the latest version of the application available at the time of installation. It does not automatically keep the application updated after installation.
+
+**Microsoft Project** is a project management application developed by Microsoft. It is used by project managers to plan, schedule, track, and report on projects of varying complexity.
+
+## Key Features
+
+* Gantt chart creation and timeline visualisation
+* Task scheduling with dependencies, milestones, and critical path analysis
+* Resource management including assignment, levelling, and capacity planning
+* Budget tracking and cost management
+* Reporting dashboards for project status and progress
+* Integration with Microsoft 365 services including Teams and SharePoint
+* Import and export of MPP, XML, Excel, and CSV formats
+* Available as Project Standard (desktop) or Project Professional (with server connectivity)
+
+Microsoft Project is deployed in organisations where formal project scheduling and resource management are required beyond what spreadsheet tools provide.
+
+> **Licensing note:** A **Microsoft Project Plan 3** licence or higher must be assigned to the user *before* installing this software. Without a qualifying licence the application will not activate. Please ensure your licence is in place prior to installation.
+
+> **Important:** All Microsoft 365 applications (Word, Excel, Outlook, Teams, etc.) must be closed before installation can proceed. Please save and close all open work before running this installer.
+
+URL:
+https://www.microsoft.com/en-gb/microsoft-365/project/project-management-software
+
+Privacy URL:
+https://privacy.microsoft.com/en-gb/privacystatement

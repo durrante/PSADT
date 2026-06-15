@@ -1,0 +1,22 @@
+Description:
+**FileZilla Client** is a free, open-source FTP, SFTP, and FTPS client for Windows, macOS, and Linux, developed by Tim Kosse. It provides a graphical interface for transferring files between a local machine and remote servers.
+
+## Key Features
+
+* Support for FTP, FTPS (FTP over TLS), and SFTP protocols
+* Dual-pane interface for local and remote directory navigation
+* Drag-and-drop file transfers
+* Transfer queue with resume capability for interrupted transfers
+* Site Manager for storing connection profiles with credentials
+* Directory synchronisation
+* Filename filters for selective file display and transfer
+* Speed limits for controlling transfer bandwidth
+* IPv6 support
+
+FileZilla Client is commonly used by developers, system administrators, and web content managers for transferring files to web servers, FTP servers, and other remote storage systems.
+
+URL:
+https://filezilla-project.org/
+
+Privacy URL:
+https://filezilla-project.org/privacy.php

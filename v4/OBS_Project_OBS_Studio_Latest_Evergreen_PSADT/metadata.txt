@@ -1,0 +1,23 @@
+Description:
+**Note:** This package installs the latest version of the application available at the time of installation. It does not automatically keep the application updated after installation.
+
+**OBS Studio** (Open Broadcaster Software) is a free, open-source application for video recording and live streaming, developed by the OBS Project. It is used for screen capture, video recording, and broadcasting to streaming platforms.
+
+## Key Features
+
+* Scene-based compositing of multiple video and audio sources
+* Screen capture, window capture, webcam, and video device input
+* Real-time video encoding using hardware acceleration (NVENC, AMD VCE, Intel QSV) or software encoding
+* Output to file (MP4, MKV, FLV) or streaming platforms via RTMP/RTMPS
+* Audio mixer with per-source filters including noise suppression and gain
+* Virtual camera output for use in video conferencing applications
+* Plugin support for extended functionality
+* Cross-platform: available on Windows, macOS, and Linux
+
+OBS Studio is used in training, communications, and media production contexts for recording presentations, product demonstrations, and webinars.
+
+URL:
+https://obsproject.com/
+
+Privacy URL:
+https://obsproject.com/privacy-policy

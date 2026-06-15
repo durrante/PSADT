@@ -1,0 +1,22 @@
+Description:
+**Note:** This package installs the latest version of the application available at the time of installation. It does not automatically keep the application updated after installation.
+
+**Microsoft 365 Apps** (formerly Office 365 ProPlus) is Microsoft's subscription-based suite of productivity applications for business. This package deploys the en-GB (English - United Kingdom) edition.
+
+## Key Features
+
+* Word, Excel, PowerPoint, Outlook, OneNote, Access, and Publisher
+* Microsoft Teams (included as part of the suite)
+* OneDrive for Business desktop synchronisation client
+* Click-to-Run installation technology with streamlined updates
+* Support for both 32-bit and 64-bit deployments
+* Deployable via Office Deployment Tool (ODT) with XML configuration
+* Integration with Microsoft 365 cloud services including SharePoint, Exchange Online, and OneDrive
+
+Microsoft 365 Apps is the standard productivity suite for organisations on Microsoft 365 subscriptions. Applications require licence activation against an Azure AD account or KMS/MAK for volume licensing scenarios.
+
+URL:
+https://www.microsoft.com/en-gb/microsoft-365/products-apps/microsoft-365-apps-for-enterprise
+
+Privacy URL:
+https://privacy.microsoft.com/en-gb/privacystatement

@@ -1,0 +1,22 @@
+Description:
+**Note:** This package installs the latest version of the application available at the time of installation. It does not automatically keep the application updated after installation.
+
+**Citrix Workspace app (LTSR)** is the client application published by Citrix that enables users to access virtual desktops, hosted applications, and files delivered by Citrix Virtual Apps and Desktops (formerly XenApp/XenDesktop). The Long Term Service Release (LTSR) channel provides an extended support lifecycle with a focus on stability.
+
+## Key Features
+
+* Access to virtualised Windows applications and desktops
+* Seamless application integration with the local desktop
+* Support for HDX (High Definition Experience) for optimised audio, video, and peripherals
+* Single sign-on and smart card authentication
+* File access via Citrix Files integration
+* Endpoint optimisation for Microsoft Teams and other collaboration tools
+* Available for Windows, macOS, Linux, iOS, and Android
+
+The LTSR version is recommended for enterprise environments that prioritise stability and long-term supportability over access to the latest features.
+
+URL:
+https://www.citrix.com/products/receiver/
+
+Privacy URL:
+https://www.citrix.com/about/legal/privacy/

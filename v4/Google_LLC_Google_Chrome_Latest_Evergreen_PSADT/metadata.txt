@@ -1,0 +1,23 @@
+Description:
+**Note:** This package installs the latest version of the application available at the time of installation. It does not automatically keep the application updated after installation.
+
+**Google Chrome** is a web browser developed by Google LLC. It is one of the most widely used browsers in enterprise environments, supported on Windows, macOS, Linux, Android, and iOS.
+
+## Key Features
+
+* Fast page rendering with the V8 JavaScript engine and Blink rendering engine
+* Integrated developer tools for web development and debugging
+* Synchronisation of bookmarks, history, passwords, and settings across devices via a Google account
+* Extensive library of extensions available through the Chrome Web Store
+* Enterprise management via Group Policy and Chrome Browser Cloud Management
+* Built-in PDF viewer and media player
+* Sandboxing and site isolation for security
+* Automatic silent updates
+
+Chrome is deployed in organisations as a standard or alternative browser, and is required by many web applications that rely on its rendering capabilities or extension ecosystem.
+
+URL:
+https://www.google.com/chrome/
+
+Privacy URL:
+https://policies.google.com/privacy

@@ -1,0 +1,29 @@
+<Configuration ID="2fd314a4-6e5e-4a0c-b901-269b19b88cac">
+  <Add OfficeClientEdition="64" Channel="Current">
+    <Product ID="O365BusinessRetail">
+      <Language ID="en-gb" />
+      <ExcludeApp ID="Groove" />
+      <ExcludeApp ID="OneDrive" />
+      <ExcludeApp ID="Lync" />
+      <ExcludeApp ID="Teams" />
+    </Product>
+  </Add>
+  <Property Name="SharedComputerLicensing" Value="0" />
+  <Property Name="FORCEAPPSHUTDOWN" Value="FALSE" />
+  <Property Name="DeviceBasedLicensing" Value="0" />
+  <Property Name="SCLCacheOverride" Value="0" />
+  <Updates Enabled="TRUE" />
+  <AppSettings>
+    <User Key="software\microsoft\office\16.0\common\general" Name="shownfirstrunoptin" Value="1" Type="REG_DWORD" App="office16" Id="L_DisableOptinWizard" />
+    <User Key="software\microsoft\office\16.0\common" Name="qmenable" Value="0" Type="REG_DWORD" App="office16" Id="L_EnableCustomerExperienceImprovementProgram" />
+    <User Key="software\microsoft\office\16.0\common" Name="updatereliabilitydata" Value="0" Type="REG_DWORD" App="office16" Id="L_UpdateReliabilityPolicy" />
+    <User Key="software\microsoft\office\16.0\common\feedback" Name="enabled" Value="0" Type="REG_DWORD" App="office16" Id="L_SendFeedback" />
+    <User Key="software\microsoft\office\16.0\firstrun" Name="disablemovie" Value="1" Type="REG_DWORD" App="office16" Id="L_DisableMovie" />
+    <User Key="software\microsoft\office\16.0\firstrun" Name="bootedrtm" Value="1" Type="REG_DWORD" App="office16" Id="L_DisableOfficeFirstrun" />
+    <User Key="software\microsoft\office\16.0\excel\options" Name="defaultformat" Value="51" Type="REG_DWORD" App="excel16" Id="L_SaveExcelfilesas" />
+    <User Key="software\microsoft\office\16.0\outlook\autodiscover" Name="zeroconfigexchange" Value="1" Type="REG_DWORD" App="outlk16" Id="L_AutomaticallyConfigureProfileBasedOnActive" />
+    <User Key="software\microsoft\office\16.0\powerpoint\options" Name="defaultformat" Value="27" Type="REG_DWORD" App="ppt16" Id="L_SavePowerPointfilesas" />
+    <User Key="software\microsoft\office\16.0\word\options" Name="defaultformat" Value="" Type="REG_SZ" App="word16" Id="L_SaveWordfilesas" />
+  </AppSettings>
+  <Display Level="None" AcceptEULA="TRUE" />
+</Configuration>

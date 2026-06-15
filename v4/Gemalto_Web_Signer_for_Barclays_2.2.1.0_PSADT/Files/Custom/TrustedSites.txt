@@ -1,0 +1,38 @@
+What are trusted sites?
+-----------------------
+
+The Trusted Sites zone within the Internet Explorer Security settings is designed for content located on Web sites that are considered more reputable or trustworthy than other sites on the Internet. This means that a higher trust level can be assigned to these sites to limit the number of authentication requests.
+
+Please refer to http://support.microsoft.com/kb/174360 for more information.
+
+
+Why do I need to add the BACS URL to Trusted Sites?
+---------------------------------------------------
+
+The BACS URL must be added to the Trusted Sites zone to allow eSigner to function correctly.
+ 
+ 
+Adding BACS URL manually to Trusted Sites via TrustedSites.reg 
+--------------------------------------------------------------
+ 
+If the installer does not add the BACS URL to the Trusted Sites zone then it can be manually added, either directly into the Windows Registry by running the TrustedSites.reg or via Internet Explorer.
+ 
+Note: You must have user permission to be able to update the Windows Registry otherwise this can be done in Administrator mode.  Please consult your local technical support for further advice.
+ 
+
+Adding BACS URL manually to Trusted Sites via Internet Explorer
+---------------------------------------------------------------
+
+To add via Internet Explorer: access Internet Explorer/Tools/Internet Options/Security - select the Trusted Sites Icon then Sites. Enter the URL then select add and close. 
+ 
+The BACS URL is:
+
+BACS URL http://paymentservices.bacs.co.uk 
+
+
+Why can I not see the BACS URL in Trusted Sites if added via TrustedSites.reg?
+------------------------------------------------------------------------------
+
+The BACS URL is installed to the Trusted Sites zone in the HKEY_LOCAL_MACHINE registry so that the trusted sites are valid for all users on the PC not just the current user.  Due to this change it will not be shown in the Trusted Sites list in Internet Explorer as this only displays the URLs specific to the current user.
+
+Trusted Sites is shown to be working by a green tick at the bottom of the screen when entering the BACS URL.

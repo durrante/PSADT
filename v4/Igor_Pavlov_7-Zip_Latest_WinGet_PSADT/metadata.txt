@@ -1,0 +1,22 @@
+Description:
+**Note:** This package installs the latest version of the application available at the time of installation. It does not automatically keep the application updated after installation.
+
+**7-Zip** is a free, open-source file archiver developed by Igor Pavlov. It supports a wide range of compression formats and is commonly deployed as a standard utility in enterprise environments.
+
+## Key Features
+
+* High compression ratio using the 7z format with LZMA and LZMA2 algorithms
+* Support for packing and unpacking: 7z, XZ, BZIP2, GZIP, TAR, ZIP, and WIM formats
+* Unpacking support for: AR, ARJ, CAB, CHM, CPIO, CramFS, DMG, EXT, FAT, GPT, HFS, IHEX, ISO, LZH, LZMA, MBR, MSI, NSIS, NTFS, QCOW2, RAR, RPM, SquashFS, UDF, UEFI, VDI, VHD, VMDK, XAR, and Z formats
+* Command-line interface for scripting and automation
+* Windows Shell integration with context menu support
+* AES-256 encryption for 7z and ZIP archives
+* Self-extracting archives
+
+7-Zip is free software distributed under the GNU LGPL licence.
+
+URL:
+https://www.7-zip.org/
+
+Privacy URL:
+https://www.7-zip.org/faq.html

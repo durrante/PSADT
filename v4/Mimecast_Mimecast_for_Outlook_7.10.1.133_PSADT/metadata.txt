@@ -1,0 +1,21 @@
+Description:
+**Mimecast for Outlook** is a Microsoft Outlook add-in developed by Mimecast that integrates Mimecast's cloud-based email security, archiving, and continuity services directly into the Outlook client.
+
+## Key Features
+
+* Access to the Mimecast email archive with fast search capability from within Outlook
+* Export of archived messages back into Outlook folders
+* Large File Send for sending attachments up to 2 GB via secure links
+* Secure Messaging for sending encrypted messages to external recipients
+* Targeted Threat Protection controls including safe URL checking and attachment sandboxing
+* Content control and data leak prevention policy enforcement
+* Email continuity access during outages via the Mimecast portal
+* Policy-driven message hold and release for quarantined emails
+
+Mimecast for Outlook is deployed alongside the Mimecast cloud email gateway in organisations that use Mimecast to secure and manage their Microsoft Exchange or Microsoft 365 email environments.
+
+URL:
+https://www.mimecast.com/content/outlook-secure-email/
+
+Privacy URL:
+https://www.mimecast.com/company/mimecast-trust-center/privacy-statement/

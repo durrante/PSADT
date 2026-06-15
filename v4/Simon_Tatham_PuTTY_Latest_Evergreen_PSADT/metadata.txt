@@ -1,0 +1,23 @@
+Description:
+**Note:** This package installs the latest version of the application available at the time of installation. It does not automatically keep the application updated after installation.
+
+**PuTTY** is a free, open-source SSH, Telnet, and serial terminal client for Windows, developed by Simon Tatham. It is the most widely used SSH client in Windows environments for connecting to Linux/Unix servers and network devices.
+
+## Key Features
+
+* SSH (versions 1 and 2), Telnet, rlogin, and raw TCP connections
+* Serial port connections for console access to network equipment
+* Session management with saved connection profiles
+* X11 forwarding for running graphical Linux applications
+* Port forwarding (local, remote, and dynamic)
+* Public key authentication with key generation utility (PuTTYgen)
+* SSH agent (Pageant) for key management and agent forwarding
+* SCP and SFTP command-line tools (pscp, psftp) included in the suite
+
+PuTTY is deployed in IT environments as the standard tool for remote SSH access to servers, network infrastructure, and other managed devices.
+
+URL:
+https://www.chiark.greenend.org.uk/~sgtatham/putty/
+
+Privacy URL:
+https://www.chiark.greenend.org.uk/~sgtatham/putty/privacy.html

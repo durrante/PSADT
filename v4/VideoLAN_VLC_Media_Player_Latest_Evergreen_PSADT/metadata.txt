@@ -1,0 +1,24 @@
+Description:
+**Note:** This package installs the latest version of the application available at the time of installation. It does not automatically keep the application updated after installation.
+
+**VLC Media Player** is a free, open-source, cross-platform media player developed by the VideoLAN project. It plays a wide range of audio and video formats without requiring separate codec installations.
+
+## Key Features
+
+* Playback of virtually all common audio and video formats including MP4, MKV, AVI, MP3, FLAC, and many others
+* Built-in codec library with no dependency on external codec packs
+* Streaming playback from network sources, DVDs, Blu-rays, and webcams
+* Hardware-accelerated video decoding for reduced CPU usage
+* Subtitle support including SSA, SRT, and DVD subtitle formats
+* Audio and video filters, equaliser, and colour correction
+* Media conversion and transcoding
+* Playlist management and media library
+* Cross-platform: available on Windows, macOS, Linux, Android, and iOS
+
+VLC is deployed as a standard media player in environments where users need to play video files from a variety of sources without relying on operating system codecs.
+
+URL:
+https://www.videolan.org/vlc/
+
+Privacy URL:
+https://www.videolan.org/privacy.html

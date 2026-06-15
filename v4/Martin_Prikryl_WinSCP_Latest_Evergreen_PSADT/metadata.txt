@@ -1,0 +1,23 @@
+Description:
+**Note:** This package installs the latest version of the application available at the time of installation. It does not automatically keep the application updated after installation.
+
+**WinSCP** is a free, open-source SFTP, FTP, S3, WebDAV, and SCP client for Windows, developed by Martin Prikryl. It is used for secure file transfer between a local machine and remote servers.
+
+## Key Features
+
+* Support for SFTP, FTP, FTPS, SCP, S3, WebDAV, and local file system protocols
+* Graphical dual-pane interface for drag-and-drop file management
+* Built-in text editor for remote file editing
+* Batch file scripting and automation via command-line interface and .NET assembly
+* Integration with PuTTY for SSH terminal sessions
+* Synchronisation of local and remote directory trees
+* Background transfers and transfer queue management
+* Stored session and credential management
+
+WinSCP is widely used by system administrators and developers for transferring files to Linux/Unix servers, NAS devices, and cloud storage endpoints.
+
+URL:
+https://winscp.net/
+
+Privacy URL:
+https://winscp.net/eng/docs/privacy

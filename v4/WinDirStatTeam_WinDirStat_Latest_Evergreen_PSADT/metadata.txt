@@ -1,0 +1,21 @@
+Description:
+**Note:** This package installs the latest version of the application available at the time of installation. It does not automatically keep the application updated after installation.
+
+**WinDirStat** (Windows Directory Statistics) is a free, open-source disk usage analyser for Windows, originally developed by Oliver Schneider. It provides a visual representation of file and folder sizes to help identify what is consuming disk space.
+
+## Key Features
+
+* Treemap visualisation showing relative file sizes as coloured rectangles
+* Directory tree view with size, percentage, and file count per folder
+* File extension summary list showing which file types consume the most space
+* Drill-down navigation to identify large files and directories
+* Context menu integration for quick access to files and folders in Explorer
+* Lightweight and does not require installation in some versions
+
+WinDirStat is used by IT administrators and end users to analyse disk usage on local drives and network shares, particularly when investigating low disk space conditions.
+
+URL:
+https://windirstat.net/
+
+Privacy URL:
+https://windirstat.org/privacy-policy/
