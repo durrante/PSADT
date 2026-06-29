@@ -3,14 +3,14 @@
 .SYNOPSIS
     Intune detection script for FileZilla Client (version >= 3.70.5)
 .DESCRIPTION
-    Searches both 64-bit and 32-bit Uninstall registry keys for the 'FileZilla Client'
-    registry key name (PSChildName) with version >= 3.70.5. Using PSChildName avoids
-    false matches against FileZilla Server entries that share a similar DisplayName.
+    Searches both 64-bit and 32-bit Uninstall registry keys for a registry key name
+    (PSChildName) starting with 'FileZilla' with version >= 3.70.5. Using PSChildName
+    avoids false matches against FileZilla Server entries that share a similar DisplayName.
     Returns exit 0 (detected) or exit 1 (not detected).
     Configure in Intune as a custom PowerShell detection script.
 #>
 
-$registryKeyName = 'FileZilla'
+$registryKeyNamePrefix = 'FileZilla'
 $requiredVersion = [version]'3.70.5'
 
 $regPaths = @(
@@ -21,7 +21,7 @@ $regPaths = @(
 try
 {
     $app = Get-ItemProperty -Path $regPaths -ErrorAction SilentlyContinue |
-        Where-Object { $_.PSChildName -eq $registryKeyName -and $_.DisplayVersion -and [version]$_.DisplayVersion -ge $requiredVersion } |
+        Where-Object { $_.PSChildName -like "$registryKeyNamePrefix*" -and $_.DisplayVersion -and [version]$_.DisplayVersion -ge $requiredVersion } |
         Select-Object -First 1
 
     if ($app)
@@ -31,7 +31,7 @@ try
     }
     else
     {
-        Write-Output "NOT DETECTED (FAIL): $appDisplayName >= $requiredVersion not found in registry"
+        Write-Output "NOT DETECTED (FAIL): $registryKeyNamePrefix* >= $requiredVersion not found in registry"
         exit 1
     }
 }

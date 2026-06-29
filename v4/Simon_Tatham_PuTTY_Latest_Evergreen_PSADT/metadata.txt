@@ -21,3 +21,6 @@ https://www.chiark.greenend.org.uk/~sgtatham/putty/
 
 Privacy URL:
 https://www.chiark.greenend.org.uk/~sgtatham/putty/privacy.html
+
+Category:
+Computer management

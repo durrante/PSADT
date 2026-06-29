@@ -19,3 +19,6 @@ https://windirstat.net/
 
 Privacy URL:
 https://windirstat.org/privacy-policy/
+
+Category:
+Computer management

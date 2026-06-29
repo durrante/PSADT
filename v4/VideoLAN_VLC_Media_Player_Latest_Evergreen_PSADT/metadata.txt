@@ -22,3 +22,6 @@ https://www.videolan.org/vlc/
 
 Privacy URL:
 https://www.videolan.org/privacy.html
+
+Category:
+Photos & Media

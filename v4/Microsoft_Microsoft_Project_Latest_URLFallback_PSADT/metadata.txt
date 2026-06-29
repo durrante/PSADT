@@ -25,3 +25,6 @@ https://www.microsoft.com/en-gb/microsoft-365/project/project-management-softwar
 
 Privacy URL:
 https://privacy.microsoft.com/en-gb/privacystatement
+
+Category:
+Productivity

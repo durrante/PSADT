@@ -20,3 +20,6 @@ https://www.audacityteam.org/
 
 Privacy URL:
 https://www.audacityteam.org/about/privacy-policy/
+
+Category:
+Photos & Media

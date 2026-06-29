@@ -140,7 +140,7 @@ function Install-ADTDeployment
     }
 
     ## Show Progress Message (with the default message).
-    if ($adtSession.DeployMode -eq 'Interactive')
+    if ($adtSession.DeployMode -eq 'Interactive' -and $adtSession.AppProcessesToClose.Count -gt 0)
     {
         Show-ADTInstallationProgress
     }
@@ -226,7 +226,7 @@ function Install-ADTDeployment
         # /S
         # /quiet
         # /norestart
-        '/silent /noreboot /EnableCEIP=false /includeSSON STORE0="Store;https://csrcouncil.cloud.com/Citrix/Store/discovery;On;Store"'
+        '/silent /noreboot /EnableCEIP=false /includeSSON STORE0="Store;https://<your site>.cloud.com/Citrix/Store/discovery;On;Store"'
     )
     $appZipInstallerFilename = 'setup.exe'  # TODO: verify this matches the installer filename inside the ZIP
     $appZipInstallerPath     = ''              # override: set to a relative path to skip auto-search (e.g. 'Subfolder\setup.exe')
@@ -396,7 +396,7 @@ function Uninstall-ADTDeployment
     }
 
     ## Show Progress Message (with the default message).
-    if ($adtSession.DeployMode -eq 'Interactive')
+    if ($adtSession.DeployMode -eq 'Interactive' -and $adtSession.AppProcessesToClose.Count -gt 0)
     {
         Show-ADTInstallationProgress
     }
@@ -457,7 +457,7 @@ function Repair-ADTDeployment
     }
 
     ## Show Progress Message (with the default message).
-    if ($adtSession.DeployMode -eq 'Interactive')
+    if ($adtSession.DeployMode -eq 'Interactive' -and $adtSession.AppProcessesToClose.Count -gt 0)
     {
         Show-ADTInstallationProgress
     }

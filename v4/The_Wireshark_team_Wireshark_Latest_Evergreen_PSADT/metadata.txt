@@ -25,3 +25,6 @@ https://www.wireshark.org/
 
 Privacy URL:
 https://www.wireshark.org/privacy.html
+
+Category:
+Computer management

@@ -22,3 +22,6 @@ https://notepad-plus-plus.org/
 
 Privacy URL:
 https://notepad-plus-plus.org/privacy/
+
+Category:
+Productivity

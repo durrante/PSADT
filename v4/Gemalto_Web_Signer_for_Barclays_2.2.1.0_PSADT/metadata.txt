@@ -17,3 +17,6 @@ https://chromewebstore.google.com/detail/gemalto-web-signer-for-ba/akfldeakecjeg
 
 Privacy URL:
 https://www.thalesgroup.com/en/privacy-statement-cookies
+
+Category:
+Business

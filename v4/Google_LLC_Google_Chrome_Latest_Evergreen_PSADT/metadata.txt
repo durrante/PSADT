@@ -21,3 +21,6 @@ https://www.google.com/chrome/
 
 Privacy URL:
 https://policies.google.com/privacy
+
+Category:
+Productivity

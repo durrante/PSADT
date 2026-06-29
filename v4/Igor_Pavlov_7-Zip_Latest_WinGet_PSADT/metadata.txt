@@ -20,3 +20,6 @@ https://www.7-zip.org/
 
 Privacy URL:
 https://www.7-zip.org/faq.html
+
+Category:
+Data management

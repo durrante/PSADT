@@ -21,3 +21,6 @@ https://www.microsoft.com/en-gb/microsoft-365/onedrive/onedrive-for-business
 
 Privacy URL:
 https://privacy.microsoft.com/en-gb/privacystatement
+
+Category:
+Productivity

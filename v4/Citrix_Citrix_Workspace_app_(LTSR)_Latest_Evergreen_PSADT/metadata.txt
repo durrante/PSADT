@@ -20,3 +20,6 @@ https://www.citrix.com/products/receiver/
 
 Privacy URL:
 https://www.citrix.com/about/legal/privacy/
+
+Category:
+Productivity

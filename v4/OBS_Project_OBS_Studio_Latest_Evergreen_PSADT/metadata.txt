@@ -21,3 +21,6 @@ https://obsproject.com/
 
 Privacy URL:
 https://obsproject.com/privacy-policy
+
+Category:
+Photos & Media

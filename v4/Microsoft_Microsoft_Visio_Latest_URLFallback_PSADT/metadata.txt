@@ -24,3 +24,6 @@ https://www.microsoft.com/en-gb/microsoft-365/visio/flowchart-software
 
 Privacy URL:
 https://privacy.microsoft.com/en-gb/privacystatement
+
+Category:
+Productivity

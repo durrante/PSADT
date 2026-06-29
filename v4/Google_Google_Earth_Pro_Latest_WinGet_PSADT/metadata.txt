@@ -21,3 +21,6 @@ https://www.google.com/earth/about/versions/
 
 Privacy URL:
 https://policies.google.com/privacy
+
+Category:
+Productivity

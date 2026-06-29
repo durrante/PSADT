@@ -20,3 +20,6 @@ https://filezilla-project.org/
 
 Privacy URL:
 https://filezilla-project.org/privacy.php
+
+Category:
+Data management

@@ -140,7 +140,7 @@ function Install-ADTDeployment
     }
 
     ## Show Progress Message (with the default message).
-    if ($adtSession.DeployMode -eq 'Interactive')
+    if ($adtSession.DeployMode -eq 'Interactive' -and $adtSession.AppProcessesToClose.Count -gt 0)
     {
         Show-ADTInstallationProgress
     }
@@ -244,7 +244,7 @@ function Uninstall-ADTDeployment
     }
 
     ## Show Progress Message (with the default message).
-    if ($adtSession.DeployMode -eq 'Interactive')
+    if ($adtSession.DeployMode -eq 'Interactive' -and $adtSession.AppProcessesToClose.Count -gt 0)
     {
         Show-ADTInstallationProgress
     }
@@ -309,7 +309,7 @@ function Repair-ADTDeployment
     }
 
     ## Show Progress Message (with the default message).
-    if ($adtSession.DeployMode -eq 'Interactive')
+    if ($adtSession.DeployMode -eq 'Interactive' -and $adtSession.AppProcessesToClose.Count -gt 0)
     {
         Show-ADTInstallationProgress
     }

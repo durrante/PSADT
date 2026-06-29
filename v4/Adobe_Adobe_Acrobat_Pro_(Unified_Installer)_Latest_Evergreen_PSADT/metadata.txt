@@ -22,3 +22,6 @@ https://www.adobe.com/acrobat/acrobat-pro.html
 
 Privacy URL:
 https://www.adobe.com/privacy/policy.html
+
+Category:
+Productivity
