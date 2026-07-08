@@ -88,15 +88,15 @@ param
 # By setting the "AppName" property, Zero-Config MSI will be disabled.
 $adtSession = @{
     # App variables.
-    AppVendor = 'Citrix'
-    AppName = 'Citrix Workspace app (LTSR)'
-    AppVersion = 'Latest'
-    AppArch = 'x86'
+    AppVendor = 'Acro Software Inc.'
+    AppName = 'CutePDF Writer'
+    AppVersion = '4.0'
+    AppArch = 'x64'
     AppLang = 'EN'
     AppRevision = '01'
     AppSuccessExitCodes = @(0)
     AppRebootExitCodes = @(1641, 3010)
-    AppProcessesToClose = @('AuthManSvr', 'concentr', 'Receiver', 'redirector', 'SelfService', 'SelfServicePlugin', 'wfcrun32')  # Example: @('excel', @{ Name = 'winword'; Description = 'Microsoft Word' })
+    AppProcessesToClose = @(@{ Name = 'CutePDFWriter'; Description = 'Cute PDFWriter' })  # Example: @('excel', @{ Name = 'winword'; Description = 'Microsoft Word' })
     AppScriptVersion = '1.0.0'
     AppScriptDate = '2026-05-29'
     AppScriptAuthor = 'Alex Durrant'
@@ -145,17 +145,34 @@ function Install-ADTDeployment
         Show-ADTInstallationProgress
     }
 
-    ## Install Visual C++ Redistributable prerequisites.
+    ## Remove any existing Ghostscript installation before upgrading.
+    $existingCutePDFWriter = @(Get-ADTApplication -Name 'Ghostscript' -NameMatch Exact -ErrorAction SilentlyContinue)
+    if ($existingCutePDFWriter.Count -gt 0)
+    {
+        Write-ADTLogEntry -Message "Found $($existingCutePDFWriter.Count) existing Ghostscript installation(s) - removing before upgrade."
+        $preUninstallSplat = @{
+            Name         = 'Ghostscript'
+            NameMatch    = 'Exact'
+            ArgumentList = '/S'
+        }
+        Uninstall-ADTApplication @preUninstallSplat
+    }
 
-    ## VC++ v14 x64 (VS 2017-2026) - supports apps built with Visual Studio 2015 through 2026.
-    ## The v14 runtime is binary-compatible with VS 2015 apps (14.0.x) - no separate 2015 entry is needed.
-    ## Downloaded from the official Microsoft permalink (always the latest v14 build).
-    ## Exit code 1638 means a newer version is already installed and is ignored.
-    ## All other non-zero exit codes are treated as genuine failures.
-    Write-ADTLogEntry -Message 'Downloading and installing VC++ v14 x64 (VS 2017-2026).'
-    $vcRedistVCv14x64VS20172026Path = Join-Path -Path $envTemp -ChildPath 'vc_redist.x64.exe'
-    Invoke-WebRequest -Uri 'https://aka.ms/vc14/vc_redist.x64.exe' -OutFile $vcRedistVCv14x64VS20172026Path -UseBasicParsing
-    Start-ADTProcess -FilePath $vcRedistVCv14x64VS20172026Path -ArgumentList @('/install', '/quiet', '/norestart') -IgnoreExitCodes '1638' -WindowStyle Hidden
+
+    ## Remove any existing CutePDF Writer installation before upgrading.
+    $existingCutePDFWriter = @(Get-ADTApplication -Name 'CutePDF Writer' -NameMatch Exact -ErrorAction SilentlyContinue)
+    if ($existingCutePDFWriter.Count -gt 0)
+    {
+        Write-ADTLogEntry -Message "Found $($existingCutePDFWriter.Count) existing CutePDF Writer installation(s) - removing before upgrade."
+        $preUninstallSplat = @{
+            Name         = 'CutePDF Writer'
+            NameMatch    = 'Exact'
+            ArgumentList = '/uninstall /s'
+        }
+        Uninstall-ADTApplication @preUninstallSplat
+    }
+
+    ## Install Visual C++ Redistributable prerequisites.
 
     ## VC++ v14 x86 (VS 2017-2026) - supports apps built with Visual Studio 2015 through 2026.
     ## The v14 runtime is binary-compatible with VS 2015 apps (14.0.x) - no separate 2015 entry is needed.
@@ -166,21 +183,6 @@ function Install-ADTDeployment
     $vcRedistVCv14x86VS20172026Path = Join-Path -Path $envTemp -ChildPath 'vc_redist.x86.exe'
     Invoke-WebRequest -Uri 'https://aka.ms/vc14/vc_redist.x86.exe' -OutFile $vcRedistVCv14x86VS20172026Path -UseBasicParsing
     Start-ADTProcess -FilePath $vcRedistVCv14x86VS20172026Path -ArgumentList @('/install', '/quiet', '/norestart') -IgnoreExitCodes '1638' -WindowStyle Hidden
-
-    ## Remove any existing Citrix Workspace installation before upgrading.
-    $existingCitrixWorkspace = @(Get-ADTApplication -Name 'Citrix Workspace' -NameMatch Contains -ErrorAction SilentlyContinue)
-    if ($existingCitrixWorkspace.Count -gt 0)
-    {
-        Write-ADTLogEntry -Message "Found $($existingCitrixWorkspace.Count) existing Citrix Workspace installation(s) - removing before upgrade."
-        $preUninstallSplat = @{
-            Name                   = 'Citrix Workspace'
-            NameMatch              = 'Contains'
-            ApplicationType        = 'EXE'
-            AdditionalArgumentList = '/silent'
-        }
-        Uninstall-ADTApplication @preUninstallSplat
-    }
-
 
     ##================================================
     ## MARK: Install
@@ -202,159 +204,38 @@ function Install-ADTDeployment
         }
     }
 
-    ## Evergreen download and install.
-    # Update the variables below to suit the application package you selected.
-    # For MSI installs, leave $appMsiInstallArgumentList empty to use the built-in PSADT MSI settings
-    # from Config\config.psd1 such as MSI.InstallParams / MSI.SilentParams.
-    # For EXE installs, add one argument per line to $appExeInstallArgumentList.
-    # For ZIP installs: $appZipInstallerFilename is the filename searched for after extraction.
-    # Set $appZipInstallerPath to a relative path to skip the search and use an exact location instead.
-
-    $appEvergreenName = 'CitrixWorkspaceApp'
-    $appStream = 'LTSR'
-    $tempPath = Join-Path -Path $envTemp -ChildPath $appEvergreenName
-    $appMsiInstallArgumentList = @(
-        # Add one MSI argument per line only if you need to override PSADT defaults.
-        # Examples:
-        # /qn
-        # REBOOT=ReallySuppress
-        # ALLUSERS=1
+    ## Install the application.
+    ## Step 1 of 2 - GPL Ghostscript.msi
+    $appMsiInstallArgumentList2 = @(
+        # These args REPLACE all PSADT defaults. Include /qn or equivalent silent flags.
+        # Examples: /qn, REBOOT=ReallySuppress, ALLUSERS=1
     )
-    $appExeInstallArgumentList = @(
+    if ($appMsiInstallArgumentList2.Count -gt 0)
+    {
+        Start-ADTMsiProcess -Action Install -FilePath "$($adtSession.DirFiles)\GPL Ghostscript.msi" -ArgumentList $appMsiInstallArgumentList2
+    }
+    else
+    {
+        Start-ADTMsiProcess -Action Install -FilePath "$($adtSession.DirFiles)\GPL Ghostscript.msi"
+    }
+
+
+    ## Step 2 of 2 - CuteWriter.exe
+    $appInstallArgumentList1 = @(
         # Add one EXE argument per line.
-        # Examples:
-        # /S
-        # /quiet
-        # /norestart
-        '/silent /noreboot /EnableCEIP=false /includeSSON STORE0="Store;https://<YOUR URL>.cloud.com/Citrix/Store/discovery;On;Store"'
+        # Examples: /S, /quiet, /norestart
+        '/VERYSILENT /NORESTART'
     )
-    $appZipInstallerFilename = 'setup.exe'  # TODO: verify this matches the installer filename inside the ZIP
-    $appZipInstallerPath     = ''              # override: set to a relative path to skip auto-search (e.g. 'Subfolder\setup.exe')
-
-    if (Get-PSRepository | Where-Object { $_.Name -eq 'PSGallery' -and $_.InstallationPolicy -ne 'Trusted' })
-    {
-        Install-PackageProvider -Name 'NuGet' -MinimumVersion '2.8.5.208' -Force
-        Set-PSRepository -Name 'PSGallery' -InstallationPolicy 'Trusted'
+    $installProcessSplat1 = @{
+        FilePath       = "$($adtSession.DirFiles)\CuteWriter.exe"
+        WindowStyle    = 'Hidden'
+        WaitForMsiExec = $true
     }
-
-    $installedEvergreen = Get-Module -Name 'Evergreen' -ListAvailable |
-        Sort-Object -Property @{ Expression = { [version]$_.Version }; Descending = $true } |
-        Select-Object -First 1
-    $publishedEvergreen = Find-Module -Name 'Evergreen'
-    if ($null -eq $installedEvergreen)
+    if ($appInstallArgumentList1.Count -gt 0)
     {
-        Install-Module -Name 'Evergreen' -Force
+        $installProcessSplat1.ArgumentList = $appInstallArgumentList1
     }
-    elseif ([version]$publishedEvergreen.Version -gt [version]$installedEvergreen.Version)
-    {
-        Update-Module -Name 'Evergreen' -Force
-    }
-
-    Import-Module -Name 'Evergreen' -Force
-    Update-Evergreen -Force | Out-Null
-
-    $appInfo = Get-EvergreenApp -Name $appEvergreenName | Where-Object { $_.Stream -eq $appStream } |
-        Sort-Object -Property @{ Expression = { [version]$_.Version }; Descending = $true } |
-        Select-Object -First 1
-    if ($null -eq $appInfo)
-    {
-        throw "No Evergreen package matched the configured filters for [$appEvergreenName]."
-    }
-
-    $installerPath = $appInfo | Save-EvergreenApp -Path $tempPath | Select-Object -First 1
-    if ([string]::IsNullOrWhiteSpace([string]$installerPath))
-    {
-        throw "Save-EvergreenApp did not return a downloadable installer path for [$appEvergreenName]."
-    }
-
-    $installerExtension = [System.IO.Path]::GetExtension([string]$installerPath).ToLowerInvariant()
-    switch ($installerExtension)
-    {
-        '.msi'
-        {
-            if ($appMsiInstallArgumentList.Count -gt 0)
-            {
-                Start-ADTMsiProcess -Action Install -FilePath $installerPath -ArgumentList $appMsiInstallArgumentList
-            }
-            else
-            {
-                Start-ADTMsiProcess -Action Install -FilePath $installerPath
-            }
-        }
-        '.exe'
-        {
-            $exeProcessSplat = @{
-                FilePath       = $installerPath
-                WindowStyle    = 'Hidden'
-                WaitForMsiExec = $true
-            }
-            if ($appExeInstallArgumentList.Count -gt 0)
-            {
-                $exeProcessSplat.ArgumentList = $appExeInstallArgumentList
-            }
-            Start-ADTProcess @exeProcessSplat
-        }
-        '.zip'
-        {
-            $extractPath = Join-Path -Path $tempPath -ChildPath 'Extracted'
-            Expand-Archive -Path $installerPath -DestinationPath $extractPath -Force
-
-            if (-not [string]::IsNullOrWhiteSpace($appZipInstallerPath))
-            {
-                $expandedInstallerPath = Join-Path -Path $extractPath -ChildPath $appZipInstallerPath
-            }
-            else
-            {
-                $expandedInstallerPath = Get-ChildItem -Path $extractPath -Filter $appZipInstallerFilename -Recurse -ErrorAction SilentlyContinue |
-                    Select-Object -First 1 -ExpandProperty FullName
-                if ([string]::IsNullOrWhiteSpace([string]$expandedInstallerPath))
-                {
-                    throw "Could not find '$appZipInstallerFilename' inside the extracted ZIP. Set $appZipInstallerPath to the relative path manually."
-                }
-            }
-            if (-not (Test-Path -LiteralPath $expandedInstallerPath))
-            {
-                throw "Installer path not found inside the extracted ZIP: [$expandedInstallerPath]."
-            }
-
-            switch ([System.IO.Path]::GetExtension([string]$expandedInstallerPath).ToLowerInvariant())
-            {
-                '.msi'
-                {
-                    if ($appMsiInstallArgumentList.Count -gt 0)
-                    {
-                        Start-ADTMsiProcess -Action Install -FilePath $expandedInstallerPath -ArgumentList $appMsiInstallArgumentList
-                    }
-                    else
-                    {
-                        Start-ADTMsiProcess -Action Install -FilePath $expandedInstallerPath
-                    }
-                }
-                '.exe'
-                {
-                    $zipExeProcessSplat = @{
-                        FilePath       = $expandedInstallerPath
-                        WindowStyle    = 'Hidden'
-                        WaitForMsiExec = $true
-                    }
-                    if ($appExeInstallArgumentList.Count -gt 0)
-                    {
-                        $zipExeProcessSplat.ArgumentList = $appExeInstallArgumentList
-                    }
-                    Start-ADTProcess @zipExeProcessSplat
-                }
-                default
-                {
-                    throw "Unsupported installer type inside ZIP: [$expandedInstallerPath]."
-                }
-            }
-        }
-        default
-        {
-            throw "Unsupported Evergreen download type: [$installerExtension]."
-        }
-    }
-
+    Start-ADTProcess @installProcessSplat1
 
     ##================================================
     ## MARK: Post-Install
@@ -362,8 +243,7 @@ function Install-ADTDeployment
     $adtSession.InstallPhase = "Post-$($adtSession.DeploymentType)"
 
     ## Adjust the pattern below if the application creates a differently named shortcut on the desktop.
-    $appDesktopIconPattern = 'Citrix*.lnk'
-    Remove-ADTFolder -Path "$tempPath" -ErrorAction SilentlyContinue
+    $appDesktopIconPattern = 'CutePDF*.lnk'
     Remove-ADTFile -Path "$envCommonDesktop\$appDesktopIconPattern" -ErrorAction SilentlyContinue
     Update-ADTDesktop
 
@@ -420,14 +300,27 @@ function Uninstall-ADTDeployment
         Start-ADTMsiProcess @ExecuteDefaultMSISplat
     }
 
-    ## Uninstall the application using the registry uninstall string.
+    ## Uninstall the application.
     $uninstallSplat = @{
-        Name            = 'Citrix Workspace'
+        Name         = 'GPL Ghostscript'
         ApplicationType = 'EXE'
-        ArgumentList    = '/uninstall /cleanup /silent'
+        ArgumentList = @('/S')
+        
     }
     Uninstall-ADTApplication @uninstallSplat
 
+        $uninstallSplat = @{
+        Name         = 'GPL Ghostscript'
+        ApplicationType = 'MSI'
+    }
+    Uninstall-ADTApplication @uninstallSplat
+
+    $uninstallSplat = @{
+        Name         = 'CutePDF Writer'
+        NameMatch    = 'Exact'
+        ArgumentList = @('/uninstall /s')
+    }
+    Uninstall-ADTApplication @uninstallSplat
 
     ##================================================
     ## MARK: Post-Uninstallation

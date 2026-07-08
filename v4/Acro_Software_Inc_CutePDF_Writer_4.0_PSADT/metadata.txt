@@ -1,0 +1,20 @@
+Description:
+**CutePDF Writer** is a free PDF creation utility developed by Acro Software Inc. It installs as a virtual printer subsystem, allowing any Windows application that supports printing to generate PDF documents.
+
+## Key Features
+
+* Creates standard PDF files from any printable Windows application
+* Installs as a virtual printer - no changes to the source application required
+* Supports embedding of fonts and images
+* Free for both commercial and non-commercial use with no watermarks
+
+CutePDF Writer is commonly used in organisations as a lightweight, cost-free method of producing PDF output without requiring a full PDF authoring suite.
+
+URL:
+https://www.acrosoftware.com/Products/CutePDF/writer.asp
+
+Privacy URL:
+https://www.acrosoftware.com/Info/privacy.asp
+
+Category:
+Productivity

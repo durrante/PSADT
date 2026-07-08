@@ -1,2 +1,0 @@
-C:\Program Files\Microsoft Office\root\Office16
-winproj.exe
