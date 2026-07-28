@@ -51,7 +51,7 @@ Big thanks to **Aaron Parker** for creating and maintaining Evergreen. It takes 
 
 Packages with `_WinGet_` in the name use the **[PSAppDeployToolkit.WinGet extension](https://github.com/mjr4077au/PSAppDeployToolkit.WinGet)** by **mjr4077au** to install, update, and remove applications via the Windows Package Manager from within a PSADT deployment context. The extension handles WinGet availability and repair, making it reliable under the SYSTEM account during Intune deployments.
 
-#### `_URLFallback_`
+#### 🔗 `_URLFallback_`
 
 Packages with `_URLFallback_` attempt to download the latest installer from a known vendor URL at runtime. If that download fails for any reason (network issue, URL change, etc.), the script falls back to a locally cached copy bundled in the `Files\` folder, which may be an older version. This gives you the best of both worlds - always try for the latest, but never leave a device without an installer to use.
 
