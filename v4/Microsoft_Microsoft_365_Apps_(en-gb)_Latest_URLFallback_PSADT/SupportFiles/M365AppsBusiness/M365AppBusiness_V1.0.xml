@@ -1,4 +1,21 @@
-<Configuration ID="2fd314a4-6e5e-4a0c-b901-269b19b88cac">
+<Configuration ID="8c41d7b2-59a3-4f16-93de-b0f4ac6e7d51">
+
+  <!-- Remove OEM preinstalled consumer Office before installing.
+       All="FALSE" is critical: All="TRUE" would also remove Visio and Project.
+       No Language element means ODT discovers and removes every installed
+       language for that product, so new OEM language sets are handled.
+       O365BusinessRetail is deliberately absent here: it is the product
+       being installed below. -->
+  <Remove All="FALSE">
+    <Product ID="O365HomePremRetail" />
+    <Product ID="OneNoteFreeRetail" />
+    <Product ID="O365ProPlusRetail" />
+    <Product ID="HomeStudent2021Retail" />
+    <Product ID="HomeStudent2024Retail" />
+    <Product ID="HomeBusiness2021Retail" />
+    <Product ID="HomeBusiness2024Retail" />
+  </Remove>
+
   <Add OfficeClientEdition="64" Channel="Current">
     <Product ID="O365BusinessRetail">
       <Language ID="en-gb" />
@@ -8,11 +25,14 @@
       <ExcludeApp ID="Teams" />
     </Product>
   </Add>
+
   <Property Name="SharedComputerLicensing" Value="0" />
-  <Property Name="FORCEAPPSHUTDOWN" Value="FALSE" />
+  <Property Name="FORCEAPPSHUTDOWN" Value="TRUE" />
   <Property Name="DeviceBasedLicensing" Value="0" />
   <Property Name="SCLCacheOverride" Value="0" />
+
   <Updates Enabled="TRUE" />
+
   <AppSettings>
     <User Key="software\microsoft\office\16.0\common\general" Name="shownfirstrunoptin" Value="1" Type="REG_DWORD" App="office16" Id="L_DisableOptinWizard" />
     <User Key="software\microsoft\office\16.0\common" Name="qmenable" Value="0" Type="REG_DWORD" App="office16" Id="L_EnableCustomerExperienceImprovementProgram" />
@@ -25,5 +45,7 @@
     <User Key="software\microsoft\office\16.0\powerpoint\options" Name="defaultformat" Value="27" Type="REG_DWORD" App="ppt16" Id="L_SavePowerPointfilesas" />
     <User Key="software\microsoft\office\16.0\word\options" Name="defaultformat" Value="" Type="REG_SZ" App="word16" Id="L_SaveWordfilesas" />
   </AppSettings>
+
   <Display Level="None" AcceptEULA="TRUE" />
+
 </Configuration>

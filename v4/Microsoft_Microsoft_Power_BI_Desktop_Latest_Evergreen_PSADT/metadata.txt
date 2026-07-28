@@ -1,0 +1,24 @@
+Description:
+**Note:** This package installs the latest version of the application available at the time of installation. It does not automatically keep the application updated after installation.
+
+**Microsoft Power BI Desktop** is a free data analysis and report authoring tool developed by Microsoft. It is used to connect to data sources, transform and model data, and build interactive reports and dashboards that can be published to the Power BI service for sharing across the organisation.
+
+## Key Features
+
+* Connects to hundreds of data sources including Excel, SQL Server, Azure services, SharePoint, and web APIs
+* Power Query editor for cleansing, shaping, and combining data before analysis
+* Data modelling with relationships, calculated columns, and DAX measures
+* Drag-and-drop report canvas with a wide range of interactive visualisations
+* Publishing to the Power BI service for sharing reports and dashboards
+* Custom visuals available through Microsoft AppSource
+* Row-level security for controlling data access within reports
+* Compatible with currently supported Windows operating systems (x64)
+
+URL:
+https://powerbi.microsoft.com/en-gb/desktop/
+
+Privacy URL:
+https://privacy.microsoft.com/en-gb/privacystatement
+
+Category:
+Data management

@@ -214,7 +214,8 @@ function Install-ADTDeployment
     Set-ADTRegistryKey -Key $adtRegKey -Name "InstallDate" -Value (Get-Date -Format "yyyy-MM-dd") -Type String
     Set-ADTRegistryKey -Key $adtRegKey -Name "InstalledBy" -Value "Intune / PSADT"               -Type String
 
-
+	## Allow apps to be opened
+	Unblock-ADTAppExecution
 }
 
 function Uninstall-ADTDeployment
