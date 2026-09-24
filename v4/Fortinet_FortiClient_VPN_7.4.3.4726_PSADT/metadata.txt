@@ -1,0 +1,22 @@
+Description:
+**FortiClient VPN** is the free remote access client from Fortinet. It uses SSL and IPsec VPN to provide secure, reliable access to corporate networks and applications from virtually any internet connected remote location, and simplifies the remote user experience with built-in auto-connect and always-up VPN features.
+
+## Key Features
+
+* SSL VPN and IPsec VPN remote access to FortiGate firewalls
+* Auto-connect and always-up VPN connections
+* Single sign-on (SAML) and multi-factor authentication support
+* Centrally deployed VPN tunnel configurations
+* System tray client for quick connect and connection status
+* Automatic updates disabled so versions are controlled through Intune
+
+FortiClient VPN is deployed to workstations that need remote access to corporate resources through a FortiGate VPN gateway.
+
+URL:
+https://www.fortinet.com/support/product-downloads#vpn
+
+Privacy URL:
+https://www.fortinet.com/corporate/about-us/privacy
+
+Category:
+Computer management

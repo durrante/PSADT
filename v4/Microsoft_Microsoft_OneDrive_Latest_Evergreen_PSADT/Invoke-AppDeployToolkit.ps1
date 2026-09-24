@@ -223,7 +223,16 @@ function Install-ADTDeployment
     Update-Evergreen -Force | Out-Null
 
     $appInfo = Get-EvergreenApp -Name $appEvergreenName | Where-Object { $_.Architecture -eq $appArchitecture -and $_.Type -eq $appType -and $_.Ring -eq $appRing -and $_.Throttle -eq $appThrottle } |
-        Sort-Object -Property @{ Expression = { [version]$_.Version }; Descending = $true } |
+        Sort-Object -Property @{
+            # Vendor version strings are not always castable to [version] (QGIS publishes
+            # '4.2.1-1', for example), so build the sort key from the numeric parts instead.
+            Expression = {
+                $versionParts = @([regex]::Matches([string]$_.Version, '\d+') | Select-Object -First 4 | ForEach-Object { [int][System.Math]::Min([double]$_.Value, [int]::MaxValue) })
+                while ($versionParts.Count -lt 4) { $versionParts += 0 }
+                [version]($versionParts -join '.')
+            }
+            Descending = $true
+        } |
         Select-Object -First 1
     if ($null -eq $appInfo)
     {

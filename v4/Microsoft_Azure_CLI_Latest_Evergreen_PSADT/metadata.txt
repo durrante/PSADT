@@ -1,0 +1,27 @@
+Description:
+**Note:** This package installs the latest version of the application available at the time of installation. It does not automatically keep the application updated after installation.
+
+**Microsoft Azure CLI** is a free, cross-platform command-line tool developed by Microsoft for creating and managing Azure resources. It is used by developers, DevOps engineers, and administrators to automate and script Azure administration tasks from a terminal.
+
+## Key Features
+
+* Command-line management of Azure resources including VMs, storage, networking, and App Services
+* Interactive and scriptable authentication against Azure Active Directory / Microsoft Entra ID
+* Supports both imperative commands and declarative deployment of ARM/Bicep templates
+* Tab completion and extensible command modules via `az extension`
+* Output formatting in JSON, table, or TSV for easy scripting and pipelining
+* Cross-platform consistency with the same command set on Windows, macOS, and Linux
+* Integration with Azure DevOps, GitHub Actions, and other CI/CD pipelines
+
+> **Note:** Azure CLI also installs a self-contained instance of the **Bicep CLI**, used for authoring and deploying Bicep infrastructure-as-code templates (`az bicep` commands). This Bicep CLI instance is separate from any manually installed version and is not added to the system PATH.
+
+Azure CLI is deployed to developer and administrator workstations for scripting and managing Azure infrastructure outside of the Azure Portal.
+
+URL:
+https://learn.microsoft.com/en-us/cli/azure/
+
+Privacy URL:
+https://privacy.microsoft.com/en-gb/privacystatement
+
+Category:
+Development & Design

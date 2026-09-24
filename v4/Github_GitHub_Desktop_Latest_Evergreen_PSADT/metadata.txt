@@ -1,0 +1,24 @@
+Description:
+**Note:** This package installs the latest version of the application available at the time of installation. It installs the GitHub Desktop machine-wide installer, which then installs GitHub Desktop into each user's profile. Users logged on at the time of installation get it straight away, and other users get it the next time they log on. Once installed, each user's copy keeps itself updated.
+
+**GitHub Desktop** is a free, open-source Git client developed by GitHub. It lets users work with Git repositories on GitHub, GitHub Enterprise and other Git hosts through a graphical interface, without needing to use the command line.
+
+## Key Features
+
+* Clone, create and publish repositories on GitHub and GitHub Enterprise
+* View changes line by line and choose exactly which changes to commit
+* Create, switch, merge and delete branches
+* Create and review pull requests, and check their status
+* Resolve merge conflicts with guided help
+* View commit history and undo or revert commits
+* Open repositories in an external editor or shell
+* Compatible with currently supported Windows operating systems
+
+URL:
+https://desktop.github.com/
+
+Privacy URL:
+https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement
+
+Category:
+Developer Tools

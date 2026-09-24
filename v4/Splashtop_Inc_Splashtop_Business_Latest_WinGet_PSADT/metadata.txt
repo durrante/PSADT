@@ -1,0 +1,26 @@
+Description:
+**Note:** This package installs the latest version of the application available at the time of installation. Splashtop then keeps itself updated.
+
+**Splashtop Business** is a remote access and remote support application from Splashtop Inc. It lets users connect to and control their work computers from another device, and lets IT and support teams remotely access managed endpoints.
+
+## Key Features
+
+* Remote access to unattended computers from desktop, web, or mobile apps
+* High performance remote desktop streaming with support for multiple monitors
+* File transfer between local and remote computers
+* Remote print, so documents on a remote computer can print to a local printer
+* Session recording and two-factor authentication for security
+* Remote wake, reboot, and diagnostics of managed computers
+* Centralised deployment and device management for IT teams
+* Compatible with currently supported Windows operating systems
+
+Splashtop Business is deployed for remote and hybrid workers who need to access their office PC, and for IT teams providing remote support.
+
+URL:
+https://www.splashtop.com/splashtop-business-access
+
+Privacy URL:
+https://www.splashtop.com/privacy-policy
+
+Category:
+Computer Management

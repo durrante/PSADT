@@ -1,0 +1,26 @@
+Description:
+**Note:** This package installs the latest version of the application available at the time of installation. It does not automatically keep the application updated after installation.
+
+**Log Parser 2.2** is a free command line tool from Microsoft that provides SQL-like query access to a wide range of data sources. Instead of scrolling through raw log files, IT administrators can write a query and get back exactly the rows they need.
+
+## Key Features
+
+* SQL-like query language for filtering, sorting, and aggregating data
+* Queries text-based logs, including IIS/W3C logs, CSV, and XML files
+* Queries the Windows Event Log directly, without exporting it first
+* Can also query the file system, the registry, and Active Directory
+* Output to text, CSV, XML, SQL Server, a datagrid, or a chart
+* Supports saved queries for repeatable troubleshooting tasks
+* Runs entirely from the command line, so it is easy to script and schedule
+* Compatible with currently supported Windows operating systems
+
+Log Parser 2.2 was last officially released by Microsoft in 2005 and has not been updated since, but it still runs on current Windows versions and remains a popular tool for querying IIS logs and Windows Event Logs during troubleshooting and security investigations. See [Conetrix's beginner's guide to Log Parser](https://conetrix.com/blog/microsoft-log-parser-beginners-guide) for worked examples.
+
+URL:
+https://www.microsoft.com/en-us/download/details.aspx?id=24659
+
+Privacy URL:
+https://privacy.microsoft.com/en-us/privacystatement
+
+Category:
+Data management

@@ -1,0 +1,33 @@
+Description:
+**Note:** This package installs the latest version of the application available at the time of installation. It does not automatically keep the application updated after installation.
+
+**QGIS** is a free, open-source desktop Geographic Information System (GIS) developed by QGIS.org and the QGIS community. It is used to create, edit, visualise, analyse, and publish geospatial information, and is a widely used alternative to commercial GIS platforms.
+
+## Key Features
+
+* 2D map viewing and 3D scene visualisation with extensive cartographic styling
+* Support for vector, raster, mesh, and point cloud data in a wide range of formats
+* Direct connections to spatial databases including PostGIS, SpatiaLite, SQL Server, and Oracle Spatial
+* OGC web service support for WMS, WMTS, WFS, WCS, and vector tiles
+* Digitising and editing tools with topology checking and attribute forms
+* Processing toolbox with several hundred geoprocessing algorithms, plus GDAL, GRASS, and SAGA integration
+* Graphical model builder and batch processing for repeatable analysis workflows
+* Python console and PyQGIS scripting for automation
+* Plugin repository for extending functionality
+* Print layout designer for producing maps, atlases, and reports
+* Cross-platform: available on Windows, macOS, and Linux
+
+QGIS is used across local government, planning, environmental, utilities, and surveying teams for mapping, spatial analysis, and producing map output for reports and public consultation.
+
+> **Important - release channel:** This package installs the current **stable release** of QGIS, not the Long Term Release (LTR). The stable release gets new features sooner but changes more often. If your team needs the LTR for plugin or project-file consistency, please log a ticket and an engineer will arrange a separate LTR package.
+
+> **Note:** QGIS is installed for all users on the device. Plugins installed by a user from the QGIS plugin repository are stored in that user's profile and are not managed by this package.
+
+URL:
+https://qgis.org/
+
+Privacy URL:
+https://qgis.org/resources/support/privacy/
+
+Category:
+Development & Design

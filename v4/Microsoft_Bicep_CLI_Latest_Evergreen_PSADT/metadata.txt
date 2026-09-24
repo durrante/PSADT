@@ -1,0 +1,27 @@
+Description:
+**Note:** This package installs the latest version of the application available at the time of installation. It does not automatically keep the application updated after installation.
+
+**Bicep CLI** is a free, open-source command-line tool developed by Microsoft for authoring and deploying Bicep files. Bicep is a domain-specific language (DSL) that uses declarative syntax to define and deploy Azure resources as an alternative to hand-writing ARM JSON templates.
+
+## Key Features
+
+* Concise, declarative syntax for defining Azure infrastructure as code
+* Type safety and IntelliSense support when paired with an editor extension (e.g. VS Code)
+* Transpiles `.bicep` files into ARM templates for deployment via Azure CLI or Azure PowerShell
+* Module support for breaking large deployments into reusable, composable components
+* Built-in linting to catch configuration errors before deployment
+* Immediate support for new Azure resource types and API versions as they are released
+* `bicep build`, `bicep decompile`, and `bicep lint` commands for working with templates locally
+
+> **Note:** This package installs the standalone Bicep CLI and adds it to the system PATH. This is separate from the self-contained copy of Bicep that Azure CLI installs automatically the first time an `az bicep` command is run - that bundled copy is not added to PATH.
+
+Bicep CLI is deployed to developer and infrastructure engineer workstations for authoring and validating Bicep templates outside of Azure CLI's bundled copy.
+
+URL:
+https://learn.microsoft.com/en-us/azure/azure-resource-manager/bicep/overview
+
+Privacy URL:
+https://privacy.microsoft.com/en-gb/privacystatement
+
+Category:
+Development & Design

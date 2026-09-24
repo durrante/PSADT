@@ -1,0 +1,26 @@
+Description:
+**Note:** This package installs the latest version of the application available at the time of installation. It does not automatically keep the application updated after installation.
+
+**Advanced IP Scanner** is a free, fast network scanner developed by Famatech. It is used by IT administrators and network engineers to discover and manage devices on a local area network (LAN).
+
+## Key Features
+
+* Fast scanning of all network devices, showing status, name, IP address, and MAC address
+* Access to shared folders on discovered network devices
+* Remote control of computers via RDP and Radmin
+* Wake-On-LAN and remote shutdown of network devices
+* HTTP, HTTPS, and FTP access to discovered resources
+* MAC address resolution with vendor/manufacturer identification
+* Export of scan results to CSV, HTML, or XML for documentation and reporting
+* No installation required for portable use, alongside a standard installer option
+
+Advanced IP Scanner is deployed in IT teams for LAN inventory, network troubleshooting, and remote device management.
+
+URL:
+https://www.advanced-ip-scanner.com/
+
+Privacy URL:
+https://www.advanced-ip-scanner.com/privacy/
+
+Category:
+Computer management

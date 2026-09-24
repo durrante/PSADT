@@ -1,0 +1,26 @@
+Description:
+**Note:** This package installs the latest version of the application available at the time of installation. It does not automatically keep the application updated after installation.
+
+**Microsoft Azure Storage Explorer** is a free, cross-platform desktop application developed by Microsoft for managing Azure storage resources. It is used by developers, administrators and data engineers to upload, download and manage data in Azure Storage accounts without needing to use the Azure Portal or command-line tools.
+
+## Key Features
+
+* Browse and manage Azure Blob containers, File shares, Queues and Tables
+* Manage Azure Data Lake Storage Gen2 folders, files and access control lists (ACLs)
+* Upload, download, copy and delete files and folders using AzCopy for fast, reliable transfers
+* Sign in with Microsoft Entra ID, or connect using account keys, shared access signatures (SAS) or connection strings
+* Generate and manage shared access signatures and stored access policies
+* Manage blob snapshots, soft-deleted items, access tiers and leases
+* Connect to local storage emulators such as Azurite for development and testing
+* Compatible with currently supported Windows operating systems (x64)
+
+Azure Storage Explorer is deployed to developer and administrator workstations for working with Azure storage accounts from the desktop.
+
+URL:
+https://azure.microsoft.com/en-gb/products/storage/storage-explorer/
+
+Privacy URL:
+https://privacy.microsoft.com/en-gb/privacystatement
+
+Category:
+Data Management

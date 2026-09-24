@@ -1,0 +1,24 @@
+Description:
+**Note:** This package installs the latest version of the application available at the time of installation. It does not automatically keep the application updated after installation.
+
+**KeePass Password Safe** is a free, open-source password manager developed by Dominik Reichl. It stores passwords and credentials in a strongly encrypted database protected by a master password, key file, or Windows user account, allowing users to manage complex unique passwords across all their accounts without needing to remember them individually.
+
+## Key Features
+
+* Stores passwords, usernames, URLs, and notes in an AES-256 or ChaCha20 encrypted database
+* Supports auto-type and browser integration for seamless credential entry
+* Built-in password generator for creating strong, unique passwords
+* Organises entries into groups and subgroups for easy management
+* Search and filtering to quickly locate credentials
+* Portable and installable editions; this package deploys the MSI (installed) edition
+* Supports plugins and extensions for additional functionality
+* Compatible with currently supported Windows operating systems
+
+URL:
+https://keepass.info/
+
+Privacy URL:
+https://keepass.info/help/base/terms.html#privacy
+
+Category:
+Business

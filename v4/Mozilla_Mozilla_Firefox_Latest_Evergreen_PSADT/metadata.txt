@@ -1,0 +1,24 @@
+Description:
+**Note:** This package installs the latest version of the application available at the time of installation. It does not automatically keep the application updated after installation.
+
+**Mozilla Firefox** is a free, open-source web browser developed by Mozilla. It is built on Mozilla's own Gecko engine rather than Chromium, and is known for its privacy protections, standards support and extensive add-on library.
+
+## Key Features
+
+* Enhanced Tracking Protection to block trackers, cookies and fingerprinting by default
+* Sync of bookmarks, passwords, history and open tabs across signed-in devices
+* Firefox Add-ons library for extending and customising the browser
+* Container tabs for keeping browsing sessions separate from each other
+* Built-in password manager with breach alerts
+* Reader mode, picture-in-picture video and a built-in PDF viewer
+* Enterprise management through Group Policy and policies.json
+* Compatible with currently supported Windows operating systems
+
+URL:
+https://www.mozilla.org/en-GB/firefox/
+
+Privacy URL:
+https://www.mozilla.org/en-GB/privacy/firefox/
+
+Category:
+Web Browsers

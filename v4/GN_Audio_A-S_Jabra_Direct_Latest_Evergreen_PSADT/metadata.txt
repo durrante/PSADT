@@ -1,0 +1,23 @@
+Description:
+**Note:** This package installs the latest version of the application available at the time of installation. It does not automatically keep the application updated after installation. For existing users, update notifications are turned off. Automatic firmware updates for Jabra devices stay enabled.
+
+**Jabra Direct** is a free desktop application developed by GN Audio A/S (Jabra). It is used to set up, manage and update Jabra headsets, speakerphones and other devices, and it integrates with softphones and unified communications platforms such as Microsoft Teams and Zoom for call control.
+
+## Key Features
+
+* Configure device settings such as sidetone, audio equaliser and busy light
+* Update Jabra device firmware
+* Call control integration with supported softphones and UC clients (e.g. Microsoft Teams, Zoom, Cisco Webex)
+* Set the preferred softphone for call control
+* View device information and battery status
+* Manage multiple connected Jabra devices from one place
+* Compatible with currently supported Windows operating systems (x64)
+
+URL:
+https://www.jabra.com/software-and-services/jabra-direct
+
+Privacy URL:
+https://www.jabra.com/about/legal/privacy-policy
+
+Category:
+Productivity

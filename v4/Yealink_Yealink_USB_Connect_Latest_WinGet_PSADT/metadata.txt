@@ -1,0 +1,25 @@
+Description:
+**Note:** This package installs the latest version of the application available at the time of installation. It does not automatically keep the application updated after installation.
+
+**Yealink USB Connect** is a companion application from Yealink for its USB headsets, speakerphones, and other USB-connected devices. It links the device to the user's unified communications platform (such as Microsoft Teams or Zoom), so that call controls on the device itself, like answer, end, and mute, work directly with the software the user is calling from.
+
+## Key Features
+
+* Automatic recognition of connected Yealink USB devices
+* Call control integration with UC platforms including Microsoft Teams and Zoom
+* Device firmware updates and settings configuration from one place
+* Audio settings management, including ringtone and volume presets
+* Device status and battery information for wireless headsets
+* Simple pairing for Bluetooth-capable Yealink accessories connected via USB dongle
+* Compatible with currently supported Windows operating systems
+
+Yealink USB Connect is deployed for users with Yealink headsets or speakerphones so their device's buttons work correctly with softphone and conferencing apps.
+
+URL:
+https://www.yealink.com/en/product-detail/usb-connect
+
+Privacy URL:
+https://www.yealink.com/en/privacy-policy
+
+Category:
+Productivity

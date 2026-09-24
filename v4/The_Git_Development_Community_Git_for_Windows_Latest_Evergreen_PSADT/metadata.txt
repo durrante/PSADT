@@ -1,0 +1,24 @@
+Description:
+**Note:** This package installs the latest version of the application available at the time of installation. It does not automatically keep the application updated after installation.
+
+**Git for Windows** is the official build of Git, the free, open-source distributed version control system, for Windows. It provides the Git command line tools along with Git Bash, a Bash environment for running Git and common Unix tools, and is required by many development tools such as Visual Studio Code and GitHub Desktop.
+
+## Key Features
+
+* Full Git command line tools for cloning, committing, branching, merging and pushing
+* Git Bash, a Bash shell with common Unix tools for running Git commands
+* Git GUI for committing changes and browsing repository history
+* Git Credential Manager for secure sign-in to GitHub, Azure DevOps, Bitbucket and other Git hosts
+* Integration with Windows Explorer to open Git Bash or Git GUI from any folder
+* Works with Command Prompt, PowerShell and Windows Terminal
+* Support for Git LFS (Large File Storage) for large binary files
+* Compatible with currently supported Windows operating systems
+
+URL:
+https://gitforwindows.org/
+
+Privacy URL:
+https://sfconservancy.org/privacy-policy/
+
+Category:
+Developer Tools

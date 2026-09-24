@@ -1,0 +1,24 @@
+Description:
+**Note:** This package installs the latest version of the application available at the time of installation. It does not automatically keep the application updated after installation.
+
+**Visual Studio Code** is a free, open-source code editor developed by Microsoft. It is widely used for writing, editing, and debugging code across a broad range of programming languages and file types, with support for extensions that expand its capabilities for virtually any development workflow.
+
+## Key Features
+
+* Syntax highlighting and IntelliSense code completion for a wide range of languages
+* Integrated debugger for step-through debugging without leaving the editor
+* Built-in Git integration for source control operations directly within the editor
+* Extensions marketplace with thousands of add-ons for languages, themes, and tooling
+* Integrated terminal for running shell commands alongside code
+* Remote development support via SSH, containers, and WSL
+* Live Share for real-time collaborative editing
+* Compatible with currently supported Windows operating systems
+
+URL:
+https://code.visualstudio.com/
+
+Privacy URL:
+https://privacy.microsoft.com/en-gb/privacystatement
+
+Category:
+Developer Tools

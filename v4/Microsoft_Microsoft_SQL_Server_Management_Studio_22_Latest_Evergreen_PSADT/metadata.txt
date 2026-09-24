@@ -1,0 +1,26 @@
+Description:
+**Note:** This package installs the latest version of the application available at the time of installation. It does not automatically keep the application updated after installation.
+
+**Microsoft SQL Server Management Studio 22** (SSMS) is an integrated environment from Microsoft for managing SQL Server, Azure SQL Database and Azure Synapse Analytics. Version 22 is built on the Visual Studio 2022 shell and is installed and serviced through the Visual Studio installer.
+
+## Key Features
+
+* Object Explorer for browsing and administering databases, tables, views, security and jobs
+* Transact-SQL query editor with IntelliSense, debugging and execution plan analysis
+* Database backup, restore, attach, detach and migration tooling
+* Import and export wizards for moving data between SQL Server and other sources
+* Activity Monitor, performance dashboards and query store reporting
+* Management of SQL Server Agent jobs, alerts and maintenance plans
+* Connectivity to Azure SQL Database, Azure SQL Managed Instance and Azure Synapse Analytics
+* Compatible with currently supported Windows operating systems
+
+SSMS is deployed to database administrators, developers and support staff who need to query, administer and troubleshoot SQL Server instances.
+
+URL:
+https://learn.microsoft.com/en-us/ssms/sql-server-management-studio-ssms
+
+Privacy URL:
+https://privacy.microsoft.com/en-gb/privacystatement
+
+Category:
+Data management

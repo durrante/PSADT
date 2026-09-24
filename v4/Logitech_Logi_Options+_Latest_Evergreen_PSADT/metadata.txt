@@ -1,0 +1,26 @@
+Description:
+**Note:** This package installs the latest version of the application available at the time of installation. It does not automatically keep the application updated after installation.
+
+**Logi Options+** is Logitech's device management application for their mice, keyboards, and presentation remotes. It replaces the older Logitech Options software and lets users customise button assignments, pointer and scroll behaviour, and per-application settings for supported Logitech peripherals. This package installs with the built-in auto-updater disabled so the deployed version stays under Intune control.
+
+## Key Features
+
+* Per-application button, key, and gesture customisation for supported mice and keyboards
+* Pointer speed, scroll direction, and thumbwheel configuration
+* Flow, allowing one mouse and keyboard to control multiple computers and copy content between them
+* Smart Actions to automate repetitive multi-step tasks from a single key press
+* Battery level reporting and low battery notifications for wireless devices
+* Backlight and function key behaviour control on supported keyboards
+* Firmware update delivery for connected Logitech devices
+* Optional Microsoft Office and Adobe plugin integrations
+
+Logi Options+ is typically deployed where Logitech peripherals are standard issue and users need consistent button mappings and device behaviour across managed devices.
+
+URL:
+https://www.logitech.com/software/logi-options-plus.html
+
+Privacy URL:
+https://www.logitech.com/legal/product-privacy-policy.html
+
+Category:
+Computer management

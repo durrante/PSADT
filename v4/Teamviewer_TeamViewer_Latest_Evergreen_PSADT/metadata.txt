@@ -1,0 +1,26 @@
+Description:
+**Note:** This package installs the latest version of the application available at the time of installation. It does not automatically keep the application updated after installation.
+
+**TeamViewer** is a remote access and remote support application developed by TeamViewer SE. It allows IT staff to connect to, control and troubleshoot devices over the internet without requiring a VPN, and supports unattended access to servers and workstations.
+
+## Key Features
+
+* Attended and unattended remote control of Windows, macOS, Linux, Android and iOS devices
+* Cross-platform file transfer between the local and remote device
+* Remote printing, session recording and multi-monitor support
+* Wake-on-LAN, remote reboot and automatic reconnection after restart
+* Built-in chat, voice and video conferencing for supporting end users
+* Device grouping, access control and managed device policies via the Management Console
+* End-to-end encryption with optional two-factor authentication and conditional access
+* Compatible with currently supported Windows operating systems
+
+TeamViewer is deployed in organisations to provide IT support to remote and home-based staff, and to administer unattended devices such as servers, kiosks and meeting room systems.
+
+URL:
+https://www.teamviewer.com/en-gb/
+
+Privacy URL:
+https://www.teamviewer.com/en-gb/legal/privacy-policy/
+
+Category:
+Computer management
