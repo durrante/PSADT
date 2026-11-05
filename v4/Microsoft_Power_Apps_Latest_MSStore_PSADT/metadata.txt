@@ -1,0 +1,13 @@
+Description:
+**Microsoft Power Apps** is the Windows front door to the Power Apps your organisation has built or shared with you, such as expenses, timesheets, inspections and event registration apps.
+
+The latest version is downloaded from the Microsoft Store at install time and provisioned for all users on the device. The Microsoft Store keeps it up to date afterwards.
+
+URL:
+https://apps.microsoft.com/detail/9MVC8P1Q3B29
+
+Privacy URL:
+https://go.microsoft.com/fwlink/?LinkID=310138
+
+Category:
+Business
