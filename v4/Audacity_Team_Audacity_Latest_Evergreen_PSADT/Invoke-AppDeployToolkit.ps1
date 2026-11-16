@@ -96,9 +96,12 @@ $adtSession = @{
     AppRevision = '01'
     AppSuccessExitCodes = @(0)
     AppRebootExitCodes = @(1641, 3010)
-    AppProcessesToClose = @('Audacity')  # Example: @('excel', @{ Name = 'winword'; Description = 'Microsoft Word' })
-    AppScriptVersion = '1.0.0'
-    AppScriptDate = '2026-05-28'
+    AppProcessesToClose = @(
+        @{ Name = 'Audacity4'; Description = 'Audacity 4' }
+        @{ Name = 'Audacity'; Description = 'Audacity 3' }
+    )
+    AppScriptVersion = '1.1.0'
+    AppScriptDate = '2026-11-16'
     AppScriptAuthor = 'Alex Durrant'
     RequireAdmin = $true
 
@@ -145,7 +148,9 @@ function Install-ADTDeployment
         Show-ADTInstallationProgress
     }
 
-    ## <Perform Pre-Installation tasks here>
+    ## Remove Audacity 3.x (Inno Setup EXE). Audacity 4 is an MSI that installs side by side
+    ## into 'Audacity 4' and does not upgrade or remove the old EXE-based install.
+    Uninstall-ADTApplication -Name 'Audacity' -ApplicationType EXE -FilterScript { $_.UninstallString -match 'unins\d+\.exe' } -ArgumentList '/VERYSILENT /NORESTART'
 
 
     ##================================================
@@ -169,34 +174,17 @@ function Install-ADTDeployment
     }
 
     ## Evergreen download and install.
-    # Update the variables below to suit the application package you selected.
-    # For MSI installs, leave $appMsiInstallArgumentList empty to use the built-in PSADT MSI settings
-    # from Config\config.psd1 such as MSI.InstallParams / MSI.SilentParams.
-    # For EXE installs, add one argument per line to $appExeInstallArgumentList.
-    # For ZIP installs: $appZipInstallerFilename is the filename searched for after extraction.
-    # Set $appZipInstallerPath to a relative path to skip the search and use an exact location instead.
+    # From Audacity 4.0 Evergreen only publishes an MSI (x64 and arm64). The MSI has no ALLUSERS
+    # property, so without ALLUSERS=1 it installs per-user (into SYSTEM's profile under Intune).
+    # These arguments are appended to the PSADT defaults in Config\config.psd1 (MSI.InstallParams).
 
     $appEvergreenName = 'Audacity'
     $appArchitecture = 'x64'
-    $appType = 'exe'
+    $appType = 'msi'
     $tempPath = Join-Path -Path $envTemp -ChildPath $appEvergreenName
-    $appMsiInstallArgumentList = @(
-        # Add one MSI argument per line only if you need to override PSADT defaults.
-        # Examples:
-        # /qn
-        # REBOOT=ReallySuppress
-        # ALLUSERS=1
+    $appMsiAdditionalArgumentList = @(
+        'ALLUSERS=1'
     )
-    $appExeInstallArgumentList = @(
-        # Add one EXE argument per line.
-        # Examples:
-        # /S
-        # /quiet
-        # /norestart
-        '/VERYSILENT /NORESTART'
-    )
-    $appZipInstallerFilename = 'setup.exe'  # TODO: verify this matches the installer filename inside the ZIP
-    $appZipInstallerPath     = ''              # override: set to a relative path to skip auto-search (e.g. 'Subfolder\setup.exe')
 
     if (Get-PSRepository | Where-Object { $_.Name -eq 'PSGallery' -and $_.InstallationPolicy -ne 'Trusted' })
     {
@@ -221,7 +209,16 @@ function Install-ADTDeployment
     Update-Evergreen -Force | Out-Null
 
     $appInfo = Get-EvergreenApp -Name $appEvergreenName | Where-Object { $_.Architecture -eq $appArchitecture -and $_.Type -eq $appType } |
-        Sort-Object -Property @{ Expression = { [version]$_.Version }; Descending = $true } |
+        Sort-Object -Property @{
+            # Vendor version strings are not always castable to [version] (QGIS publishes
+            # '4.2.1-1', for example), so build the sort key from the numeric parts instead.
+            Expression = {
+                $versionParts = @([regex]::Matches([string]$_.Version, '\d+') | Select-Object -First 4 | ForEach-Object { [int][System.Math]::Min([double]$_.Value, [int]::MaxValue) })
+                while ($versionParts.Count -lt 4) { $versionParts += 0 }
+                [version]($versionParts -join '.')
+            }
+            Descending = $true
+        } |
         Select-Object -First 1
     if ($null -eq $appInfo)
     {
@@ -235,92 +232,12 @@ function Install-ADTDeployment
     }
 
     $installerExtension = [System.IO.Path]::GetExtension([string]$installerPath).ToLowerInvariant()
-    switch ($installerExtension)
+    if ($installerExtension -ne '.msi')
     {
-        '.msi'
-        {
-            if ($appMsiInstallArgumentList.Count -gt 0)
-            {
-                Start-ADTMsiProcess -Action Install -FilePath $installerPath -ArgumentList $appMsiInstallArgumentList
-            }
-            else
-            {
-                Start-ADTMsiProcess -Action Install -FilePath $installerPath
-            }
-        }
-        '.exe'
-        {
-            $exeProcessSplat = @{
-                FilePath       = $installerPath
-                WindowStyle    = 'Hidden'
-                WaitForMsiExec = $true
-            }
-            if ($appExeInstallArgumentList.Count -gt 0)
-            {
-                $exeProcessSplat.ArgumentList = $appExeInstallArgumentList
-            }
-            Start-ADTProcess @exeProcessSplat
-        }
-        '.zip'
-        {
-            $extractPath = Join-Path -Path $tempPath -ChildPath 'Extracted'
-            Expand-Archive -Path $installerPath -DestinationPath $extractPath -Force
-
-            if (-not [string]::IsNullOrWhiteSpace($appZipInstallerPath))
-            {
-                $expandedInstallerPath = Join-Path -Path $extractPath -ChildPath $appZipInstallerPath
-            }
-            else
-            {
-                $expandedInstallerPath = Get-ChildItem -Path $extractPath -Filter $appZipInstallerFilename -Recurse -ErrorAction SilentlyContinue |
-                    Select-Object -First 1 -ExpandProperty FullName
-                if ([string]::IsNullOrWhiteSpace([string]$expandedInstallerPath))
-                {
-                    throw "Could not find '$appZipInstallerFilename' inside the extracted ZIP. Set $appZipInstallerPath to the relative path manually."
-                }
-            }
-            if (-not (Test-Path -LiteralPath $expandedInstallerPath))
-            {
-                throw "Installer path not found inside the extracted ZIP: [$expandedInstallerPath]."
-            }
-
-            switch ([System.IO.Path]::GetExtension([string]$expandedInstallerPath).ToLowerInvariant())
-            {
-                '.msi'
-                {
-                    if ($appMsiInstallArgumentList.Count -gt 0)
-                    {
-                        Start-ADTMsiProcess -Action Install -FilePath $expandedInstallerPath -ArgumentList $appMsiInstallArgumentList
-                    }
-                    else
-                    {
-                        Start-ADTMsiProcess -Action Install -FilePath $expandedInstallerPath
-                    }
-                }
-                '.exe'
-                {
-                    $zipExeProcessSplat = @{
-                        FilePath       = $expandedInstallerPath
-                        WindowStyle    = 'Hidden'
-                        WaitForMsiExec = $true
-                    }
-                    if ($appExeInstallArgumentList.Count -gt 0)
-                    {
-                        $zipExeProcessSplat.ArgumentList = $appExeInstallArgumentList
-                    }
-                    Start-ADTProcess @zipExeProcessSplat
-                }
-                default
-                {
-                    throw "Unsupported installer type inside ZIP: [$expandedInstallerPath]."
-                }
-            }
-        }
-        default
-        {
-            throw "Unsupported Evergreen download type: [$installerExtension]."
-        }
+        throw "Expected an MSI from Evergreen for [$appEvergreenName] but got [$installerExtension]. The vendor may have changed installer format again."
     }
+    Write-ADTLogEntry -Message "Installing Audacity [$($appInfo.Version)] from [$installerPath]."
+    Start-ADTMsiProcess -Action Install -FilePath $installerPath -AdditionalArgumentList $appMsiAdditionalArgumentList
 
 
     ##================================================
@@ -341,29 +258,69 @@ function Install-ADTDeployment
     Set-ADTRegistryKey -Key $adtRegKey -Name "InstallDate" -Value (Get-Date -Format "yyyy-MM-dd") -Type String
     Set-ADTRegistryKey -Key $adtRegKey -Name "InstalledBy" -Value "Intune / PSADT"               -Type String
 
-    ## Disable Usage Info, Suppress Welcome to Audacity!, and Disable Check for Updates.
-    $installedAudacity = @(Get-ADTApplication -Name 'Audacity' -ErrorAction SilentlyContinue)
-    if ($installedAudacity.Count -gt 0)
+    ## Disable usage info and update checks, and skip the first-launch setup and welcome dialog.
+    ## Audacity 4 is built on the MuseScore framework and no longer reads audacity.cfg. Settings live in
+    ## a QSettings INI at %APPDATA%\Audacity\Audacity4.ini under the [application] section.
+    ## Existing user INIs are merged (only these keys are set), so other user preferences are kept.
+    $au4Settings = [ordered]@{
+        checkForUpdate               = 'false'
+        sendAnonymousUsageInfo       = 'false'
+        hasCompletedFirstLaunchSetup = 'true'
+        welcomeDialogShowOnStartup   = 'false'
+    }
+    foreach ($userProfile in (Get-ADTUserProfiles))
     {
-        $configFilePath = "$envWinDir\Temp\audacity.cfg"
-        $configContent = @"
-SendAnonymousUsageInfo=0
-[GUI]
-ShowSplashScreen=0
-[Update]
-UpdateNoticeShown=1
-UpdateScheduledTime=
-DefaultUpdatesChecking=0
-[Version]
-Major=9
-Minor=9
-Micro=9
-"@
-        $configContent | Out-File -FilePath $configFilePath -Encoding UTF8
-        Write-ADTLogEntry -Message "Copying audacity.cfg to user profiles." -Severity 1
-        Copy-ADTFileToUserProfiles -Path $configFilePath -Destination 'AppData\Roaming\audacity'
-        Write-ADTLogEntry -Message "Removing audacity.cfg from Temp directory." -Severity 1
-        Remove-ADTFile -Path $configFilePath -ErrorAction SilentlyContinue
+        $iniPath = Join-Path -Path $userProfile.ProfilePath -ChildPath 'AppData\Roaming\Audacity\Audacity4.ini'
+        try
+        {
+            $lines = [System.Collections.Generic.List[System.String]]::new()
+            if (Test-Path -LiteralPath $iniPath -PathType Leaf)
+            {
+                $lines.AddRange([System.String[]]@(Get-Content -LiteralPath $iniPath))
+            }
+            else
+            {
+                $null = New-Item -Path (Split-Path -Path $iniPath -Parent) -ItemType Directory -Force
+            }
+
+            # Find the [application] section, adding it if missing.
+            $sectionStart = $lines.IndexOf('[application]')
+            if ($sectionStart -lt 0)
+            {
+                if ($lines.Count -gt 0 -and $lines[$lines.Count - 1] -ne '') { $lines.Add('') }
+                $lines.Add('[application]')
+                $sectionStart = $lines.Count - 1
+            }
+
+            foreach ($key in $au4Settings.Keys)
+            {
+                $sectionEnd = $lines.Count
+                for ($i = $sectionStart + 1; $i -lt $lines.Count; $i++)
+                {
+                    if ($lines[$i] -match '^\[.+\]$') { $sectionEnd = $i; break }
+                }
+                $existing = -1
+                for ($i = $sectionStart + 1; $i -lt $sectionEnd; $i++)
+                {
+                    if ($lines[$i] -match "^$([regex]::Escape($key))\s*=") { $existing = $i; break }
+                }
+                if ($existing -ge 0)
+                {
+                    $lines[$existing] = "$key=$($au4Settings[$key])"
+                }
+                else
+                {
+                    $lines.Insert($sectionStart + 1, "$key=$($au4Settings[$key])")
+                }
+            }
+
+            [System.IO.File]::WriteAllLines($iniPath, $lines, [System.Text.UTF8Encoding]::new($false))
+            Write-ADTLogEntry -Message "Applied Audacity 4 default settings to [$iniPath]."
+        }
+        catch
+        {
+            Write-ADTLogEntry -Message "Failed to apply Audacity 4 settings to [$iniPath]: $($_.Exception.Message)" -Severity 2
+        }
     }
 
 
@@ -412,12 +369,9 @@ function Uninstall-ADTDeployment
         Start-ADTMsiProcess @ExecuteDefaultMSISplat
     }
 
-    ## Uninstall the application using the registry uninstall string.
-    $uninstallSplat = @{
-        Name         = 'Audacity'
-        ArgumentList = '/VERYSILENT /NORESTART'
-    }
-    Uninstall-ADTApplication @uninstallSplat
+    ## Uninstall Audacity 4 (MSI) and any leftover Audacity 3.x (Inno Setup EXE).
+    Uninstall-ADTApplication -Name 'Audacity' -ApplicationType MSI
+    Uninstall-ADTApplication -Name 'Audacity' -ApplicationType EXE -FilterScript { $_.UninstallString -match 'unins\d+\.exe' } -ArgumentList '/VERYSILENT /NORESTART'
 
 
     ##================================================
